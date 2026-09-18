@@ -2,7 +2,7 @@ import './globals.css';
 import Script from 'next/script';
 
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Talk to Strangers India';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://talktostrangers-india.vercel.app';
 
 export const metadata = {
   metadataBase: new URL(APP_URL),

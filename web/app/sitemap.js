@@ -1,5 +1,5 @@
 // Auto-generated sitemap.xml for Talk to Strangers India
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://talktostrangers-india.vercel.app';
 
 export default function sitemap() {
   const routes = [
