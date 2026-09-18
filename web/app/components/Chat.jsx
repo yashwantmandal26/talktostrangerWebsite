@@ -80,16 +80,25 @@ export default function Chat() {
   const [showReactionsBar, setShowReactionsBar] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const mainScrollRef = useRef(null);
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
+  // Only scroll to bottom when actively chatting (CONNECTED state with messages)
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    if (state === 'CONNECTED' && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, state]);
+
+  // Scroll main area to TOP when on landing/searching/disconnected
+  useEffect(() => {
+    if (state === 'IDLE' || state === 'SEARCHING' || state === 'DISCONNECTED') {
+      if (mainScrollRef.current) {
+        mainScrollRef.current.scrollTop = 0;
+      }
+    }
+  }, [state]);
 
   // Sync initial sound mute state & age verification
   useEffect(() => {
@@ -439,7 +448,7 @@ export default function Chat() {
       )}
 
       {/* Chat Window */}
-      <main className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-3.5 scrollbar-thin scroll-momentum" role="log" aria-live="polite" aria-label="Chat messages">
+      <main ref={mainScrollRef} className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-3.5 scrollbar-thin scroll-momentum" role="log" aria-live="polite" aria-label="Chat messages">
         {state === 'IDLE' && (
           <LandingView
             onStart={handleStartChat}
