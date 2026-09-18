@@ -1,0 +1,17 @@
+# Render.com blueprint — deploys the WebSocket backend on the free tier
+services:
+  - type: web
+    name: talktostrangers-server
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_URLS
+        sync: false # set: https://your-app.vercel.app
+      - key: IP_SALT
+        generateValue: true
