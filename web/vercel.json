@@ -26,10 +26,5 @@
       "source": "/health",
       "destination": "/api/health"
     }
-  ],
-  "env": {
-    "NEXT_PUBLIC_APP_NAME": "@talktostrangers_app_name",
-    "NEXT_PUBLIC_SOCKET_URL": "@talktostrangers_socket_url",
-    "NEXT_PUBLIC_APP_URL": "@talktostrangers_app_url"
-  }
+  ]
 }
