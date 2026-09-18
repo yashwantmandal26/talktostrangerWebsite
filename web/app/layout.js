@@ -4,6 +4,16 @@ import Script from 'next/script';
 const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Talk to Strangers India';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://talktostrangers-india.vercel.app';
 
+// Mobile viewport — viewport-fit=cover covers iPhone notch & Dynamic Island
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#090d16',
+};
+
 export const metadata = {
   metadataBase: new URL(APP_URL),
   title: {
@@ -179,8 +189,14 @@ export default function RootLayout({ children }) {
             }),
           }}
         />
+        {/* PWA / Add to Home Screen meta */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="TTS India" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="TTS India" />
       </head>
-      <body className="min-h-screen bg-dark-950 text-dark-50 antialiased">
+      <body className="min-h-screen bg-dark-950 text-dark-50 antialiased overflow-x-hidden">
         {children}
       </body>
     </html>

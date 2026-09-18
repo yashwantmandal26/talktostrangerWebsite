@@ -314,27 +314,32 @@ export default function Chat() {
   };
 
   return (
-    <div className={`flex flex-col h-[100dvh] ${state === 'IDLE' ? 'max-w-4xl' : 'max-w-2xl'} mx-auto bg-dark-900 dark:bg-dark-950 border-x border-dark-800 relative`}>
+    <div className={`flex flex-col h-[100dvh] w-full ${state === 'IDLE' ? 'sm:max-w-4xl' : 'sm:max-w-2xl'} sm:mx-auto bg-dark-900 sm:border-x sm:border-dark-800 relative`}>
       {/* Header */}
-      <header className="flex items-center justify-between px-3.5 sm:px-4 py-3 border-b border-dark-800 bg-dark-900/80 backdrop-blur-md sticky top-0 z-20">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-primary-500/10 text-primary-400">
-            <MessageSquare className="w-5 h-5" aria-hidden="true" />
+      <header className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-dark-800 bg-dark-900/90 backdrop-blur-md sticky top-0 z-20 pt-safe">
+        {/* Branding */}
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-primary-500/10 text-primary-400 flex items-center justify-center">
+            <MessageSquare className="w-4 h-4" aria-hidden="true" />
           </div>
-          <div>
-            <h1 className="text-base sm:text-lg font-bold text-dark-50 tracking-tight flex items-center gap-1.5">
-              <span>{APP_NAME}</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary-500/20 text-primary-400 font-semibold uppercase">
-                India
-              </span>
+          <div className="min-w-0">
+            <h1 className="text-sm sm:text-base font-bold text-dark-50 tracking-tight leading-tight truncate">
+              <span className="sm:hidden">TTS India</span>
+              <span className="hidden sm:inline">{APP_NAME}</span>
             </h1>
+            {/* Online count — visible on mobile below title */}
+            <p className="text-[10px] text-dark-500 flex items-center gap-1 sm:hidden">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+              {onlineCount.toLocaleString()} online
+            </p>
           </div>
         </div>
 
         {/* Header Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Online count */}
-          <span className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-dark-800/80 border border-dark-700/60 text-dark-300 text-xs font-medium">
+        <div className="flex items-center gap-0.5 sm:gap-1.5 flex-shrink-0">
+          {/* Online count — desktop only */}
+          <span className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-dark-800/80 border border-dark-700/60 text-dark-300 text-xs font-medium mr-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
             <Users className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
             <span>{onlineCount.toLocaleString()} online</span>
           </span>
@@ -342,7 +347,7 @@ export default function Chat() {
           {/* Sound Toggle */}
           <button
             onClick={toggleSound}
-            className="p-2 rounded-xl text-dark-400 hover:text-dark-100 hover:bg-dark-800 transition-colors cursor-pointer"
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-dark-400 hover:text-dark-100 hover:bg-dark-800 active:bg-dark-700 transition-colors cursor-pointer"
             aria-label={isMuted ? 'Unmute audio' : 'Mute audio'}
             title={isMuted ? 'Unmute' : 'Mute'}
           >
@@ -354,22 +359,22 @@ export default function Chat() {
             <>
               <button
                 onClick={() => setIsIcebreakerOpen(true)}
-                className="p-2 rounded-xl text-amber-400 hover:text-amber-300 hover:bg-dark-800 transition-colors flex items-center gap-1 text-xs font-semibold cursor-pointer"
+                className="w-10 h-10 flex items-center justify-center rounded-xl text-amber-400 hover:text-amber-300 hover:bg-dark-800 active:bg-dark-700 transition-colors cursor-pointer"
                 title="Break The Ice (Alt+I)"
+                aria-label="Icebreaker prompts"
               >
                 <Sparkles className="w-4 h-4" />
-                <span className="hidden sm:inline">Icebreaker</span>
               </button>
 
               <button
                 onClick={() => setIsGameHubOpen(true)}
-                className="relative p-2 rounded-xl bg-primary-500/10 text-primary-400 hover:bg-primary-500/20 hover:text-primary-300 transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer"
+                className="relative w-10 h-10 flex items-center justify-center rounded-xl bg-primary-500/10 text-primary-400 hover:bg-primary-500/20 hover:text-primary-300 active:bg-primary-500/30 transition-colors cursor-pointer"
                 title="Play Games (Alt+G)"
+                aria-label="Open game hub"
               >
                 <Gamepad2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Games</span>
                 {incomingGameInvite && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                  <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
                 )}
               </button>
             </>
@@ -379,22 +384,18 @@ export default function Chat() {
           <button
             onClick={skipChat}
             disabled={state === 'IDLE'}
-            className={`p-2 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 text-xs font-semibold ${
+            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
               state === 'SEARCHING'
-                ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10'
-                : 'text-dark-400 hover:text-dark-100 hover:bg-dark-800'
+                ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10 active:bg-red-500/20'
+                : 'text-dark-400 hover:text-dark-100 hover:bg-dark-800 active:bg-dark-700'
             }`}
             aria-label={state === 'SEARCHING' ? 'Cancel search' : 'New chat / Skip'}
             title={state === 'SEARCHING' ? 'Cancel Search (Esc)' : 'New Chat (Esc)'}
           >
-            {state === 'SEARCHING' ? (
-              <>
-                <X className="w-4 h-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Cancel</span>
-              </>
-            ) : (
-              <SkipForward className="w-4 h-4" aria-hidden="true" />
-            )}
+            {state === 'SEARCHING'
+              ? <X className="w-4 h-4" aria-hidden="true" />
+              : <SkipForward className="w-4 h-4" aria-hidden="true" />
+            }
           </button>
         </div>
       </header>
@@ -415,7 +416,7 @@ export default function Chat() {
       )}
 
       {/* Chat Window */}
-      <main className="flex-1 overflow-y-auto p-4 space-y-3.5 scrollbar-thin" role="log" aria-live="polite" aria-label="Chat messages">
+      <main className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-3.5 scrollbar-thin scroll-momentum" role="log" aria-live="polite" aria-label="Chat messages">
         {state === 'IDLE' && (
           <LandingView
             onStart={handleStartChat}
@@ -453,27 +454,25 @@ export default function Chat() {
         </div>
       )}
 
-      {/* Quick Reactions Drawer (Above Input) */}
+      {/* Quick Reactions Drawer */}
       {state === 'CONNECTED' && showReactionsBar && (
-        <div className="px-4 py-2 border-t border-dark-800 bg-dark-900/90 backdrop-blur-md flex items-center justify-between gap-2 overflow-x-auto scrollbar-thin animate-slide-up">
-          <div className="flex items-center gap-2">
-            {QUICK_REACTIONS.map((emoji) => (
-              <button
-                key={emoji}
-                onClick={() => handleSendReaction(emoji)}
-                className="text-xl p-1.5 hover:scale-125 active:scale-95 transition-transform"
-                title={`Send ${emoji}`}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-          <div className="hidden sm:flex items-center gap-1 border-l border-dark-700 pl-2">
+        <div className="px-3 sm:px-4 py-2 border-t border-dark-800 bg-dark-900/90 backdrop-blur-md flex items-center gap-1 overflow-x-auto scrollbar-thin animate-slide-up">
+          {QUICK_REACTIONS.map((emoji) => (
+            <button
+              key={emoji}
+              onClick={() => handleSendReaction(emoji)}
+              className="text-xl w-10 h-10 flex items-center justify-center hover:scale-125 active:scale-90 transition-transform flex-shrink-0"
+              title={`Send ${emoji}`}
+            >
+              {emoji}
+            </button>
+          ))}
+          <div className="hidden sm:flex items-center gap-1 border-l border-dark-700 pl-2 ml-1">
             {QUICK_PHRASES.slice(0, 3).map((phrase) => (
               <button
                 key={phrase}
                 onClick={() => sendMessage(phrase)}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-dark-800 hover:bg-dark-700 text-dark-300 hover:text-dark-100 transition-colors whitespace-nowrap"
+                className="text-[11px] px-2.5 py-1.5 rounded-full bg-dark-800 hover:bg-dark-700 text-dark-300 hover:text-dark-100 transition-colors whitespace-nowrap"
               >
                 {phrase}
               </button>
@@ -484,15 +483,15 @@ export default function Chat() {
 
       {/* Input Bar */}
       {state === 'CONNECTED' && (
-        <div className="px-3 sm:px-4 py-3 border-t border-dark-800 bg-dark-900/90 backdrop-blur-md">
-          <div className="flex items-end gap-1.5 sm:gap-2">
+        <div className="px-2 sm:px-4 py-2 sm:py-3 border-t border-dark-800 bg-dark-900/90 backdrop-blur-md pb-safe">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {/* Quick Reactions Toggle */}
             <button
               onClick={() => setShowReactionsBar((prev) => !prev)}
-              className={`p-2.5 rounded-xl border transition-colors flex-shrink-0 cursor-pointer ${
+              className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-colors flex-shrink-0 cursor-pointer ${
                 showReactionsBar
                   ? 'bg-primary-500/20 border-primary-500 text-primary-400'
-                  : 'bg-dark-800 border-dark-700 text-dark-400 hover:text-dark-200'
+                  : 'bg-dark-800 border-dark-700 text-dark-400 hover:text-dark-200 active:bg-dark-700'
               }`}
               title="Quick Reactions"
               aria-label="Toggle Quick Reactions"
@@ -503,7 +502,7 @@ export default function Chat() {
             {/* Icebreaker shortcut */}
             <button
               onClick={() => setIsIcebreakerOpen(true)}
-              className="p-2.5 rounded-xl bg-dark-800 border border-dark-700 text-amber-400 hover:text-amber-300 hover:bg-dark-700 transition-colors flex-shrink-0 cursor-pointer"
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-dark-800 border border-dark-700 text-amber-400 hover:text-amber-300 hover:bg-dark-700 active:bg-dark-600 transition-colors flex-shrink-0 cursor-pointer"
               title="Icebreaker Prompts"
               aria-label="Open Icebreaker Prompts"
             >
@@ -516,18 +515,19 @@ export default function Chat() {
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder="Type a message… (max 500 chars)"
+              placeholder="Type a message…"
               maxLength={500}
               rows={1}
-              className="flex-1 resize-none bg-dark-800 border border-dark-700 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-dark-50 placeholder-dark-500 rounded-xl px-3.5 py-2.5 text-sm sm:text-base outline-none"
+              className="flex-1 resize-none bg-dark-800 border border-dark-700 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-dark-50 placeholder-dark-500 rounded-xl px-3 py-2.5 text-base outline-none leading-normal"
               aria-label="Message input"
+              style={{ minHeight: '44px', maxHeight: '120px' }}
             />
 
             {/* Send Button */}
             <button
               onClick={() => sendMessage()}
               disabled={!input.trim()}
-              className="p-2.5 sm:p-3 rounded-xl bg-primary-500 text-dark-900 font-semibold hover:bg-primary-400 active:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0 cursor-pointer shadow-md shadow-primary-500/20"
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary-500 text-dark-900 font-semibold hover:bg-primary-400 active:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0 cursor-pointer shadow-md shadow-primary-500/20"
               aria-label="Send message"
             >
               <Send className="w-5 h-5" aria-hidden="true" />
@@ -536,7 +536,7 @@ export default function Chat() {
             {/* Report Button */}
             <button
               onClick={() => setShowReportModal(true)}
-              className="p-2.5 sm:p-3 rounded-xl bg-dark-800 border border-dark-700 text-dark-400 hover:text-red-400 hover:border-red-500/50 transition-colors flex-shrink-0 cursor-pointer"
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-dark-800 border border-dark-700 text-dark-400 hover:text-red-400 hover:border-red-500/50 active:bg-dark-700 transition-colors flex-shrink-0 cursor-pointer"
               aria-label="Report user"
               title="Report"
             >
@@ -544,9 +544,10 @@ export default function Chat() {
             </button>
           </div>
 
-          <div className="mt-1.5 flex items-center justify-between text-[11px] text-dark-500 px-1">
-            <span>🎮 Tap <strong>Games</strong> to challenge stranger</span>
-            <span>{input.length}/500 • Enter=Send • Esc=Skip</span>
+          <div className="mt-1 flex items-center justify-between text-[10px] sm:text-[11px] text-dark-600 px-1">
+            <span className="hidden sm:block">🎮 Tap header icons to play Games or Icebreakers</span>
+            <span className="sm:hidden">🎮 Use icons above to play games</span>
+            <span>{input.length}/500</span>
           </div>
         </div>
       )}
@@ -763,18 +764,18 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
             )}
           </div>
 
-          {/* Preset Chips */}
-          <div className="flex flex-wrap gap-2 mb-3">
+          {/* Preset Chips — horizontal scroll on mobile, wrap on desktop */}
+          <div className="flex sm:flex-wrap gap-2 mb-3 overflow-x-auto scrollbar-thin pb-1 sm:pb-0 -mx-1 px-1">
             {PRESET_INTERESTS.map((interest) => {
               const isSelected = selectedInterests.includes(interest.id);
               return (
                 <button
                   key={interest.id}
                   onClick={() => onToggleInterest(interest.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                  className={`flex-shrink-0 px-3.5 py-2.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                     isSelected
-                      ? 'bg-primary-500 text-dark-900 font-bold shadow-md shadow-primary-500/20 scale-105'
-                      : 'bg-dark-800 hover:bg-dark-700 text-dark-300 border border-dark-700/60'
+                      ? 'bg-primary-500 text-dark-900 font-bold shadow-md shadow-primary-500/20'
+                      : 'bg-dark-800 hover:bg-dark-700 active:bg-dark-600 text-dark-300 border border-dark-700/60'
                   }`}
                 >
                   {interest.label}
@@ -789,14 +790,14 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
               type="text"
               value={customTag}
               onChange={(e) => setCustomTag(e.target.value)}
-              placeholder="Add custom topic (e.g. UPSC, Anime, Gym, Coding)…"
+              placeholder="Add topic (e.g. UPSC, Anime, Gym)…"
               maxLength={25}
-              className="flex-1 px-3.5 py-2 rounded-xl bg-dark-800 border border-dark-700 text-xs text-dark-100 placeholder-dark-500 outline-none focus:border-primary-500"
+              className="flex-1 px-3.5 py-3 rounded-xl bg-dark-800 border border-dark-700 text-sm text-dark-100 placeholder-dark-500 outline-none focus:border-primary-500"
             />
             <button
               type="submit"
               disabled={!customTag.trim()}
-              className="px-3.5 py-2 rounded-xl bg-dark-700 text-dark-200 text-xs font-semibold hover:bg-dark-600 disabled:opacity-40 transition-colors flex items-center gap-1 cursor-pointer"
+              className="px-4 py-3 rounded-xl bg-dark-700 text-dark-200 text-xs font-semibold hover:bg-dark-600 active:bg-dark-500 disabled:opacity-40 transition-colors flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               Add
@@ -807,7 +808,7 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
         {/* Start Button CTA */}
         <button
           onClick={onStart}
-          className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-primary-500 text-dark-900 font-black text-lg hover:bg-primary-400 active:bg-primary-600 transition-all flex items-center justify-center gap-2.5 shadow-xl shadow-primary-500/25 hover:scale-102 cursor-pointer"
+          className="w-full py-4 sm:py-4 rounded-2xl bg-primary-500 text-dark-900 font-black text-lg hover:bg-primary-400 active:bg-primary-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 shadow-xl shadow-primary-500/25 cursor-pointer"
         >
           <Search className="w-5 h-5" aria-hidden="true" />
           Start Chatting Now
