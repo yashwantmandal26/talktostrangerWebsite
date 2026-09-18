@@ -400,18 +400,41 @@ export default function Chat() {
         </div>
       </header>
 
-      {/* Shared Interests Banner (if matched with interests) */}
-      {state === 'CONNECTED' && commonInterests.length > 0 && (
-        <div className="px-4 py-2 bg-primary-500/10 border-b border-primary-500/20 flex items-center justify-center gap-2 text-xs text-primary-300 animate-fade-in">
-          <span>✨</span>
-          <span className="font-semibold">Shared Interests:</span>
-          <div className="flex gap-1">
-            {commonInterests.map((interest) => (
-              <span key={interest} className="px-2 py-0.5 rounded-full bg-primary-500/20 text-primary-200 font-medium capitalize">
-                {interest}
-              </span>
-            ))}
+      {/* Connected Status Bar */}
+      {state === 'CONNECTED' && (
+        <div className="px-3 sm:px-4 py-2 bg-dark-900/95 border-b border-dark-800 flex items-center gap-2 animate-fade-in">
+          {/* Stranger Avatar */}
+          <div className="relative flex-shrink-0">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center text-xs font-bold text-dark-900">
+              S
+            </div>
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-dark-900" />
           </div>
+
+          {/* Status text + interests */}
+          <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
+            <span className="text-xs font-semibold text-dark-100 whitespace-nowrap">Stranger</span>
+            <span className="text-[10px] text-green-400 font-medium whitespace-nowrap">● connected</span>
+            {commonInterests.length > 0 && (
+              <div className="flex gap-1 overflow-x-auto scrollbar-thin">
+                {commonInterests.map((interest) => (
+                  <span key={interest} className="flex-shrink-0 px-2 py-0.5 rounded-full bg-primary-500/20 text-primary-300 text-[10px] font-medium capitalize border border-primary-500/20">
+                    {interest}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Skip / Next button — right here near the context */}
+          <button
+            onClick={skipChat}
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dark-800 border border-dark-700 text-dark-300 text-xs font-semibold hover:bg-dark-700 hover:text-dark-100 hover:border-dark-600 active:bg-dark-600 active:scale-95 transition-all cursor-pointer"
+            title="Skip to next stranger (Esc)"
+          >
+            <SkipForward className="w-3.5 h-3.5" />
+            <span>Next</span>
+          </button>
         </div>
       )}
 
@@ -448,68 +471,72 @@ export default function Chat() {
 
       {/* Typing Indicator */}
       {typing && state === 'CONNECTED' && (
-        <div className="px-4 py-1.5 text-xs text-dark-400 italic flex items-center gap-1.5 animate-pulse">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-          Stranger is typing…
-        </div>
-      )}
-
-      {/* Quick Reactions Drawer */}
-      {state === 'CONNECTED' && showReactionsBar && (
-        <div className="px-3 sm:px-4 py-2 border-t border-dark-800 bg-dark-900/90 backdrop-blur-md flex items-center gap-1 overflow-x-auto scrollbar-thin animate-slide-up">
-          {QUICK_REACTIONS.map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => handleSendReaction(emoji)}
-              className="text-xl w-10 h-10 flex items-center justify-center hover:scale-125 active:scale-90 transition-transform flex-shrink-0"
-              title={`Send ${emoji}`}
-            >
-              {emoji}
-            </button>
-          ))}
-          <div className="hidden sm:flex items-center gap-1 border-l border-dark-700 pl-2 ml-1">
-            {QUICK_PHRASES.slice(0, 3).map((phrase) => (
-              <button
-                key={phrase}
-                onClick={() => sendMessage(phrase)}
-                className="text-[11px] px-2.5 py-1.5 rounded-full bg-dark-800 hover:bg-dark-700 text-dark-300 hover:text-dark-100 transition-colors whitespace-nowrap"
-              >
-                {phrase}
-              </button>
-            ))}
+        <div className="px-4 py-2 flex items-center gap-2 animate-fade-in">
+          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center text-[9px] font-bold text-dark-900 flex-shrink-0">
+            S
+          </div>
+          <div className="flex items-center gap-1 px-3 py-2 rounded-2xl rounded-tl-sm bg-dark-800 border border-dark-700/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-dark-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+            <span className="w-1.5 h-1.5 rounded-full bg-dark-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+            <span className="w-1.5 h-1.5 rounded-full bg-dark-400 animate-bounce" style={{ animationDelay: '300ms' }} />
           </div>
         </div>
       )}
 
       {/* Input Bar */}
       {state === 'CONNECTED' && (
-        <div className="px-2 sm:px-4 py-2 sm:py-3 border-t border-dark-800 bg-dark-900/90 backdrop-blur-md pb-safe">
-          <div className="flex items-center gap-1 sm:gap-1.5">
-            {/* Quick Reactions Toggle */}
-            <button
-              onClick={() => setShowReactionsBar((prev) => !prev)}
-              className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-colors flex-shrink-0 cursor-pointer ${
-                showReactionsBar
-                  ? 'bg-primary-500/20 border-primary-500 text-primary-400'
-                  : 'bg-dark-800 border-dark-700 text-dark-400 hover:text-dark-200 active:bg-dark-700'
-              }`}
-              title="Quick Reactions"
-              aria-label="Toggle Quick Reactions"
-            >
-              <Smile className="w-5 h-5" />
-            </button>
+        <div className="border-t border-dark-800/80 bg-dark-900/95 backdrop-blur-xl pb-safe">
+          {/* Quick Reactions Drawer */}
+          {showReactionsBar && (
+            <div className="px-3 py-2 border-b border-dark-800/60 flex items-center gap-1 overflow-x-auto scrollbar-thin animate-slide-up">
+              {QUICK_REACTIONS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => handleSendReaction(emoji)}
+                  className="text-xl w-11 h-11 flex items-center justify-center hover:scale-125 active:scale-90 transition-transform flex-shrink-0 rounded-xl hover:bg-dark-800"
+                  title={`Send ${emoji}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+              <div className="flex-shrink-0 w-px h-6 bg-dark-700 mx-1" />
+              {QUICK_PHRASES.map((phrase) => (
+                <button
+                  key={phrase}
+                  onClick={() => sendMessage(phrase)}
+                  className="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full bg-dark-800 hover:bg-dark-700 active:bg-dark-600 text-dark-300 hover:text-dark-100 transition-colors whitespace-nowrap"
+                >
+                  {phrase}
+                </button>
+              ))}
+            </div>
+          )}
 
-            {/* Icebreaker shortcut */}
-            <button
-              onClick={() => setIsIcebreakerOpen(true)}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-dark-800 border border-dark-700 text-amber-400 hover:text-amber-300 hover:bg-dark-700 active:bg-dark-600 transition-colors flex-shrink-0 cursor-pointer"
-              title="Icebreaker Prompts"
-              aria-label="Open Icebreaker Prompts"
-            >
-              <Sparkles className="w-5 h-5" />
-            </button>
+          {/* Main Input Row */}
+          <div className="px-2 sm:px-3 py-2 flex items-end gap-1.5">
+            {/* Left action buttons */}
+            <div className="flex items-center gap-1 flex-shrink-0 pb-0.5">
+              <button
+                onClick={() => setShowReactionsBar((prev) => !prev)}
+                className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all cursor-pointer ${
+                  showReactionsBar
+                    ? 'bg-primary-500/20 text-primary-400'
+                    : 'text-dark-500 hover:text-dark-200 hover:bg-dark-800 active:bg-dark-700'
+                }`}
+                aria-label="Quick reactions"
+              >
+                <Smile className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setIsIcebreakerOpen(true)}
+                className="w-9 h-9 flex items-center justify-center rounded-xl text-amber-500/70 hover:text-amber-400 hover:bg-dark-800 active:bg-dark-700 transition-all cursor-pointer"
+                aria-label="Icebreaker"
+              >
+                <Sparkles className="w-5 h-5" />
+              </button>
+            </div>
 
-            {/* Message Textarea */}
+            {/* Textarea */}
             <textarea
               ref={inputRef}
               value={input}
@@ -518,36 +545,57 @@ export default function Chat() {
               placeholder="Type a message…"
               maxLength={500}
               rows={1}
-              className="flex-1 resize-none bg-dark-800 border border-dark-700 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-dark-50 placeholder-dark-500 rounded-xl px-3 py-2.5 text-base outline-none leading-normal"
+              className="flex-1 resize-none bg-dark-800/80 border border-dark-700/80 focus:border-primary-500/60 focus:ring-1 focus:ring-primary-500/30 text-dark-50 placeholder-dark-600 rounded-2xl px-4 py-2.5 text-base outline-none leading-normal transition-all"
               aria-label="Message input"
               style={{ minHeight: '44px', maxHeight: '120px' }}
             />
 
-            {/* Send Button */}
-            <button
-              onClick={() => sendMessage()}
-              disabled={!input.trim()}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-primary-500 text-dark-900 font-semibold hover:bg-primary-400 active:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0 cursor-pointer shadow-md shadow-primary-500/20"
-              aria-label="Send message"
-            >
-              <Send className="w-5 h-5" aria-hidden="true" />
-            </button>
+            {/* Right action buttons */}
+            <div className="flex items-center gap-1 flex-shrink-0 pb-0.5">
+              {/* Send */}
+              <button
+                onClick={() => sendMessage()}
+                disabled={!input.trim()}
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-dark-900 hover:from-primary-400 hover:to-primary-500 active:from-primary-600 active:to-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0 cursor-pointer shadow-lg shadow-primary-500/25"
+                aria-label="Send message"
+              >
+                <Send className="w-4.5 h-4.5" aria-hidden="true" />
+              </button>
 
-            {/* Report Button */}
-            <button
-              onClick={() => setShowReportModal(true)}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-dark-800 border border-dark-700 text-dark-400 hover:text-red-400 hover:border-red-500/50 active:bg-dark-700 transition-colors flex-shrink-0 cursor-pointer"
-              aria-label="Report user"
-              title="Report"
-            >
-              <Flag className="w-5 h-5" aria-hidden="true" />
-            </button>
+              {/* Skip — right next to send */}
+              <button
+                onClick={skipChat}
+                className="w-10 h-10 flex items-center justify-center rounded-xl bg-dark-800/80 border border-dark-700/60 text-dark-400 hover:text-dark-100 hover:bg-dark-700 hover:border-dark-600 active:bg-dark-600 active:scale-95 transition-all cursor-pointer"
+                aria-label="Skip to next stranger"
+                title="Next stranger (Esc)"
+              >
+                <SkipForward className="w-5 h-5" aria-hidden="true" />
+              </button>
+            </div>
           </div>
 
-          <div className="mt-1 flex items-center justify-between text-[10px] sm:text-[11px] text-dark-600 px-1">
-            <span className="hidden sm:block">🎮 Tap header icons to play Games or Icebreakers</span>
-            <span className="sm:hidden">🎮 Use icons above to play games</span>
-            <span>{input.length}/500</span>
+          {/* Bottom hint */}
+          <div className="px-4 pb-1 flex items-center justify-between text-[10px] text-dark-700">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowReportModal(true)}
+                className="flex items-center gap-1 text-dark-600 hover:text-red-400 transition-colors cursor-pointer"
+                title="Report user"
+              >
+                <Flag className="w-3 h-3" />
+                <span>Report</span>
+              </button>
+              <button
+                onClick={() => setIsGameHubOpen(true)}
+                className="flex items-center gap-1 text-dark-600 hover:text-primary-400 transition-colors cursor-pointer"
+              >
+                <Gamepad2 className="w-3 h-3" />
+                <span>Games</span>
+              </button>
+            </div>
+            <span className={`tabular-nums transition-colors ${input.length > 450 ? 'text-red-400' : input.length > 350 ? 'text-amber-400' : ''}`}>
+              {input.length}/500
+            </span>
           </div>
         </div>
       )}
@@ -710,21 +758,26 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-full px-3 sm:px-6 text-center animate-fade-in py-6 sm:py-10 space-y-12">
+    <div className="flex flex-col items-center justify-center min-h-full px-3 sm:px-6 text-center animate-fade-in py-6 sm:py-10 space-y-10">
       {/* Hero Section */}
-      <div className="flex flex-col items-center max-w-2xl mx-auto">
+      <div className="flex flex-col items-center max-w-2xl mx-auto w-full">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-xs font-semibold mb-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary-500/15 to-amber-500/10 border border-primary-500/25 text-primary-300 text-xs font-semibold mb-5 animate-fade-in">
+          <span className="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse" />
           <Sparkles className="w-3.5 h-3.5" />
-          <span>India’s #1 Free Anonymous Stranger Chat & Games</span>
+          <span>India's #1 Free Anonymous Chat & Games</span>
         </div>
 
-        {/* Primary H1 */}
-        <h1 className="text-3xl sm:text-5xl font-black text-dark-50 tracking-tight mb-3">
-          Talk to Strangers India
+        {/* Gradient H1 */}
+        <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-3 leading-tight">
+          <span className="bg-gradient-to-r from-primary-400 via-amber-400 to-primary-300 bg-clip-text text-transparent">
+            Talk to Strangers
+          </span>
+          <br />
+          <span className="text-dark-50">India 🇮🇳</span>
         </h1>
-        <p className="text-sm sm:text-base text-dark-300 mb-6 max-w-xl leading-relaxed">
-          Connect instantly with verified Indian strangers online. Play multiplayer games, share desi icebreakers, or chat freely with shared interests — 100% free, no login, no phone numbers required.
+        <p className="text-sm sm:text-base text-dark-400 mb-6 max-w-xl leading-relaxed">
+          Connect instantly with Indian strangers. Play multiplayer games, share desi icebreakers — 100% free, no login required.
         </p>
 
         {/* Online Stats Bar */}
@@ -1151,8 +1204,8 @@ function MessageBubble({ message }) {
 
   if (isSystem) {
     return (
-      <div className="flex justify-center my-2">
-        <span className="px-3.5 py-1 rounded-full bg-dark-800/90 border border-dark-700/60 text-xs text-dark-400 text-center leading-relaxed">
+      <div className="flex justify-center my-3">
+        <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-dark-800/70 border border-dark-700/40 text-[11px] text-dark-500 text-center leading-relaxed">
           {text}
         </span>
       </div>
@@ -1162,18 +1215,21 @@ function MessageBubble({ message }) {
   // Icebreaker Prompt Message Bubble
   if (type === 'icebreaker') {
     return (
-      <div className={`flex ${isYou ? 'justify-end' : 'justify-start'} animate-fade-in my-2`}>
-        <div className="max-w-[85%] sm:max-w-[75%] rounded-3xl p-4 bg-gradient-to-br from-amber-500/15 via-dark-800 to-dark-900 border border-amber-500/40 shadow-xl">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-1.5">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>{isYou ? 'You shared an Icebreaker' : 'Stranger shared an Icebreaker'}</span>
+      <div className={`flex ${isYou ? 'justify-end' : 'justify-start'} animate-fade-in my-2 gap-2`}>
+        {!isYou && (
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center text-[10px] font-bold text-dark-900 flex-shrink-0 mt-auto">
+            S
+          </div>
+        )}
+        <div className="max-w-[82%] sm:max-w-[72%] rounded-3xl p-4 bg-gradient-to-br from-amber-500/20 via-dark-800/90 to-dark-900 border border-amber-500/30 shadow-lg shadow-amber-500/5 backdrop-blur-sm">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-2">
+            <Sparkles className="w-3 h-3" />
+            <span>{isYou ? 'You sent an Icebreaker' : 'Stranger sent an Icebreaker'}</span>
           </div>
           <p className="text-sm sm:text-base font-medium text-dark-50 leading-relaxed italic">
             "{text}"
           </p>
-          <div className="mt-2 text-right text-[10px] text-dark-500">
-            {time}
-          </div>
+          <div className="mt-2 text-right text-[10px] text-dark-600">{time}</div>
         </div>
       </div>
     );
@@ -1183,23 +1239,32 @@ function MessageBubble({ message }) {
   if (type === 'reaction') {
     return (
       <div className={`flex ${isYou ? 'justify-end' : 'justify-start'} animate-fade-in my-1`}>
-        <div className="text-3xl p-1 animate-bounce">
-          {text}
-        </div>
+        <div className="text-4xl animate-pop-in select-none">{text}</div>
       </div>
     );
   }
 
   // Standard Text Message Bubble
   return (
-    <div className={`flex ${isYou ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-      <div className={`max-w-[80%] sm:max-w-[75%] ${isYou ? 'rounded-2xl bg-primary-500 text-dark-900' : 'rounded-2xl bg-dark-800 border border-dark-700 text-dark-100'}`}>
-        <div className="px-4 py-2.5">
-          <p className="whitespace-pre-wrap break-words text-sm sm:text-base leading-relaxed">{text}</p>
+    <div className={`flex ${isYou ? 'justify-end' : 'justify-start'} animate-fade-in gap-2`}>
+      {/* Stranger avatar */}
+      {!isYou && (
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center text-[10px] font-bold text-dark-900 flex-shrink-0 mt-auto mb-1">
+          S
         </div>
-        <div className={`flex items-center gap-1.5 px-4 pb-1.5 ${isYou ? 'justify-end' : 'justify-start'}`}>
-          <span className={`text-[10px] ${isYou ? 'text-dark-900/60' : 'text-dark-500'}`}>{time}</span>
-          {isYou && <span className="text-[10px] text-dark-900/60 font-bold">✓✓</span>}
+      )}
+
+      <div className={`max-w-[78%] sm:max-w-[72%] flex flex-col ${isYou ? 'items-end' : 'items-start'}`}>
+        <div className={`px-4 py-2.5 ${
+          isYou
+            ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-dark-900 rounded-2xl rounded-br-sm shadow-md shadow-primary-500/20'
+            : 'bg-dark-800 border border-dark-700/60 text-dark-100 rounded-2xl rounded-bl-sm'
+        }`}>
+          <p className="whitespace-pre-wrap break-words text-sm sm:text-[15px] leading-relaxed">{text}</p>
+        </div>
+        <div className={`flex items-center gap-1 mt-0.5 px-1 ${isYou ? 'flex-row-reverse' : 'flex-row'}`}>
+          <span className="text-[10px] text-dark-600">{time}</span>
+          {isYou && <span className="text-[10px] text-primary-500/60 font-bold">✓✓</span>}
         </div>
       </div>
     </div>
