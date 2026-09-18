@@ -199,6 +199,20 @@ io.on('connection', (socket) => {
     tryMatch();
   });
 
+  socket.on('cancel_search', () => {
+    removeFromQueue(socket.id);
+    socket.emit('search_cancelled');
+  });
+
+  socket.on('skip_interest_filter', () => {
+    const entry = waitingQueue.find((item) => item.socketId === socket.id);
+    if (entry) {
+      entry.interests = [];
+      entry.joinedAt = Date.now() - 3000;
+      tryMatch();
+    }
+  });
+
   // ---- Messaging (Phase 3 moderation enforced server-side) ----
   socket.on('send_message', (payload = {}) => {
     const roomId = socketRoom.get(socket.id);

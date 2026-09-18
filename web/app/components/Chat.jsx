@@ -185,6 +185,10 @@ export default function Chat() {
       setState('IDLE');
     });
 
+    newSocket.on('search_cancelled', () => {
+      setState('IDLE');
+    });
+
     setSocket(newSocket);
     return () => newSocket.close();
   }, []);
@@ -196,6 +200,18 @@ export default function Chat() {
     setIncomingGameInvite(null);
     socket.emit('find_stranger', { interests });
   }, [socket, selectedInterests]);
+
+  const cancelSearch = useCallback(() => {
+    if (!socket) return;
+    socket.emit('cancel_search');
+    setState('IDLE');
+  }, [socket]);
+
+  const skipInterestFilter = useCallback(() => {
+    if (!socket) return;
+    setSelectedInterests([]);
+    socket.emit('skip_interest_filter');
+  }, [socket]);
 
   const sendMessage = useCallback((overrideText, type = 'text') => {
     const content = (overrideText !== undefined ? overrideText : input).trim();
@@ -227,6 +243,8 @@ export default function Chat() {
     if (!socket) return;
     if (state === 'CONNECTED') {
       socket.emit('skip_chat');
+    } else if (state === 'SEARCHING') {
+      socket.emit('cancel_search');
     }
     setMessages([]);
     setState('IDLE');
@@ -357,15 +375,26 @@ export default function Chat() {
             </>
           )}
 
-          {/* Skip / New Chat */}
+          {/* Skip / Cancel / New Chat */}
           <button
             onClick={skipChat}
             disabled={state === 'IDLE'}
-            className="p-2 rounded-xl text-dark-400 hover:text-dark-100 hover:bg-dark-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
-            aria-label="New chat / Skip"
-            title="New Chat (Esc)"
+            className={`p-2 rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 text-xs font-semibold ${
+              state === 'SEARCHING'
+                ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10'
+                : 'text-dark-400 hover:text-dark-100 hover:bg-dark-800'
+            }`}
+            aria-label={state === 'SEARCHING' ? 'Cancel search' : 'New chat / Skip'}
+            title={state === 'SEARCHING' ? 'Cancel Search (Esc)' : 'New Chat (Esc)'}
           >
-            <SkipForward className="w-4 h-4" aria-hidden="true" />
+            {state === 'SEARCHING' ? (
+              <>
+                <X className="w-4 h-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Cancel</span>
+              </>
+            ) : (
+              <SkipForward className="w-4 h-4" aria-hidden="true" />
+            )}
           </button>
         </div>
       </header>
@@ -397,13 +426,21 @@ export default function Chat() {
           />
         )}
         {state === 'SEARCHING' && (
-          <SearchingView onlineCount={onlineCount} selectedInterests={selectedInterests} />
+          <SearchingView
+            onlineCount={onlineCount}
+            selectedInterests={selectedInterests}
+            onCancel={cancelSearch}
+            onSkipFilter={skipInterestFilter}
+          />
         )}
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} />
         ))}
         {state === 'DISCONNECTED' && (
-          <DisconnectedView onFindNew={() => findStranger(selectedInterests)} />
+          <DisconnectedView
+            onFindNew={() => findStranger(selectedInterests)}
+            onGoHome={() => setState('IDLE')}
+          />
         )}
         <div ref={messagesEndRef} />
       </main>
@@ -976,28 +1013,131 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
   );
 }
 
-function SearchingView({ onlineCount, selectedInterests }) {
-  return (
-    <div className="flex flex-col items-center justify-center h-full px-4 text-center animate-fade-in py-16">
-      <div className="relative mb-6">
-        <Loader2 className="w-14 h-14 text-primary-500 animate-spin" aria-hidden="true" />
-        <span className="absolute inset-0 flex items-center justify-center text-xs">🇮🇳</span>
-      </div>
-      <h3 className="text-xl font-bold text-dark-50 mb-1">Looking for a stranger…</h3>
-      {selectedInterests.length > 0 ? (
-        <p className="text-xs text-primary-400 mb-2 font-medium">
-          Searching for someone who also likes: {selectedInterests.join(', ')}
-        </p>
-      ) : (
-        <p className="text-xs text-dark-400 mb-2">Connecting you with an active Indian stranger</p>
-      )}
-      <p className="text-xs text-dark-500">{onlineCount.toLocaleString()} users online right now</p>
+const DESI_TIPS = [
+  { emoji: '🏏', text: 'Did you know? The IPL generates over ₹10,000 crore in revenue annually.' },
+  { emoji: '🎬', text: 'Bollywood produces around 1,500–2,000 films per year — more than Hollywood!' },
+  { emoji: '☕', text: 'India is the world\'s largest consumer of tea. Chai over coffee, always!' },
+  { emoji: '🍛', text: 'India has 28 states, each with its own unique cuisine and dialect. Biryani debates incoming!' },
+  { emoji: '🎮', text: 'India has 500 million+ mobile gamers. BGMI has 100M+ downloads. GG!' },
+  { emoji: '🚀', text: 'ISRO\'s Chandrayaan-3 made India the first country to land near the lunar south pole.' },
+  { emoji: '💻', text: 'India produces the most software engineers in the world every year.' },
+  { emoji: '🎵', text: 'India\'s music industry crossed ₹2,000 crore in revenue in 2024. Bollywood bops rule!' },
+  { emoji: '🌊', text: 'The Indian Ocean is named after India — the only ocean named after a country.' },
+  { emoji: '📱', text: 'UPI processed over 13 billion transactions in a single month in 2024. India is going cashless!' },
+  { emoji: '🏠', text: 'Icebreaker idea: Ask your stranger — mountains or beaches? North India or South?' },
+  { emoji: '🎯', text: 'Tip: Start a Desi Quiz Duel from the Games menu. First one to 3 questions wins!' },
+  { emoji: '✨', text: 'Try an Icebreaker! Tap the ✨ icon to send a fun desi conversation starter.' },
+];
 
-      <div className="mt-8 flex items-center justify-center gap-2">
-        <span className="w-2.5 h-2.5 rounded-full bg-primary-500 animate-bounce" />
-        <span className="w-2.5 h-2.5 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '0.15s' }} />
-        <span className="w-2.5 h-2.5 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '0.3s' }} />
+function SearchingView({ onlineCount, selectedInterests, onCancel, onSkipFilter }) {
+  const [elapsed, setElapsed] = useState(0);
+  const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * DESI_TIPS.length));
+  const [tipVisible, setTipVisible] = useState(true);
+  const startTimeRef = useRef(Date.now());
+
+  // Live timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Rotating tips with fade transition
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTipVisible(false);
+      setTimeout(() => {
+        setTipIndex((prev) => (prev + 1) % DESI_TIPS.length);
+        setTipVisible(true);
+      }, 400);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTime = (s) => {
+    if (s < 60) return `${s}s`;
+    return `${Math.floor(s / 60)}m ${s % 60}s`;
+  };
+
+  const tip = DESI_TIPS[tipIndex];
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full px-4 text-center animate-fade-in py-8 gap-0">
+      {/* Spinner + Flag */}
+      <div className="relative mb-5">
+        {/* Outer glow ring */}
+        <div className="absolute inset-0 w-20 h-20 rounded-full bg-primary-500/20 animate-ping" />
+        <div className="relative w-20 h-20 rounded-full border-4 border-primary-500/30 border-t-primary-500 animate-spin" />
+        <span className="absolute inset-0 flex items-center justify-center text-2xl pointer-events-none">🇮🇳</span>
       </div>
+
+      {/* Title + Timer */}
+      <h3 className="text-xl font-black text-dark-50 mb-1">Finding your stranger…</h3>
+      <p className="text-sm text-primary-400 font-semibold mb-1 tabular-nums">
+        ⏱ Searching for {formatTime(elapsed)}
+      </p>
+      <p className="text-xs text-dark-500 mb-5">
+        {onlineCount.toLocaleString()} users online right now
+      </p>
+
+      {/* Active interest tags */}
+      {selectedInterests.length > 0 && (
+        <div className="mb-4 max-w-xs w-full">
+          <p className="text-[11px] text-dark-400 font-semibold uppercase tracking-wide mb-2">Matching with interests:</p>
+          <div className="flex flex-wrap gap-1.5 justify-center mb-3">
+            {selectedInterests.map((tag) => (
+              <span
+                key={tag}
+                className="px-2.5 py-1 rounded-full bg-primary-500/15 border border-primary-500/30 text-primary-300 text-xs font-medium capitalize"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          {elapsed >= 8 && (
+            <button
+              onClick={onSkipFilter}
+              className="w-full py-2 rounded-xl bg-dark-800 border border-dark-700 text-dark-200 text-xs font-semibold hover:bg-dark-700 hover:border-primary-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer animate-fade-in"
+            >
+              <Zap className="w-3.5 h-3.5 text-primary-400" />
+              Match with anyone (skip filters)
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Rotating Desi Tips Card */}
+      <div
+        className="w-full max-w-xs rounded-2xl bg-dark-800/60 border border-dark-700/60 p-4 mb-6 transition-opacity duration-400"
+        style={{ opacity: tipVisible ? 1 : 0 }}
+      >
+        <div className="flex items-start gap-3 text-left">
+          <span className="text-2xl flex-shrink-0 mt-0.5">{tip.emoji}</span>
+          <p className="text-xs text-dark-300 leading-relaxed">{tip.text}</p>
+        </div>
+        <div className="mt-2.5 flex gap-1 justify-center">
+          {DESI_TIPS.map((_, i) => (
+            <span
+              key={i}
+              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === tipIndex ? 'bg-primary-500 w-3' : 'bg-dark-600'}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Cancel Button — prominent and red */}
+      <button
+        onClick={onCancel}
+        className="group px-7 py-3.5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 font-bold hover:bg-red-500 hover:text-white hover:border-red-500 active:scale-95 transition-all flex items-center gap-2.5 cursor-pointer shadow-lg shadow-red-500/10 hover:shadow-red-500/25 text-sm"
+        aria-label="Cancel search"
+      >
+        <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
+        Cancel Search
+        <span className="text-[11px] opacity-60 font-normal">(Esc)</span>
+      </button>
+
+      <p className="mt-3 text-[11px] text-dark-600">Tip: You can also press Esc anytime to cancel</p>
     </div>
   );
 }
@@ -1065,23 +1205,44 @@ function MessageBubble({ message }) {
   );
 }
 
-function DisconnectedView({ onFindNew }) {
+function DisconnectedView({ onFindNew, onGoHome }) {
   return (
-    <div className="flex flex-col items-center justify-center px-4 text-center animate-fade-in py-12">
-      <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-3">
-        <AlertCircle className="w-7 h-7 text-red-400" aria-hidden="true" />
+    <div className="flex flex-col items-center justify-center px-4 text-center animate-fade-in py-12 gap-4">
+      {/* Icon */}
+      <div className="w-16 h-16 rounded-2xl bg-dark-800 border border-dark-700 flex items-center justify-center">
+        <span className="text-3xl">👋</span>
       </div>
-      <h3 className="text-lg font-bold text-dark-50 mb-1">Stranger left the chat</h3>
-      <p className="text-xs sm:text-sm text-dark-400 mb-6 max-w-sm">
-        They disconnected or skipped. You can find another Indian stranger instantly.
+
+      {/* Text */}
+      <div>
+        <h3 className="text-lg font-bold text-dark-50 mb-1">Stranger has left</h3>
+        <p className="text-xs sm:text-sm text-dark-400 max-w-xs">
+          They disconnected or skipped. Hope it was a good chat! Ready to meet someone new?
+        </p>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 mt-2">
+        <button
+          onClick={onFindNew}
+          className="px-6 py-3.5 rounded-2xl bg-primary-500 text-dark-900 font-bold hover:bg-primary-400 active:bg-primary-600 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-primary-500/20 text-sm cursor-pointer"
+        >
+          <MessageSquare className="w-4 h-4" aria-hidden="true" />
+          Find New Stranger
+        </button>
+
+        <button
+          onClick={onGoHome}
+          className="px-6 py-3.5 rounded-2xl bg-dark-800 border border-dark-700 text-dark-200 font-semibold hover:bg-dark-700 hover:border-dark-600 active:scale-95 transition-all flex items-center gap-2 text-sm cursor-pointer"
+        >
+          <X className="w-4 h-4" aria-hidden="true" />
+          Back to Topics (Esc)
+        </button>
+      </div>
+
+      <p className="text-[11px] text-dark-600 mt-1">
+        Press <kbd className="px-1.5 py-0.5 rounded bg-dark-800 border border-dark-700 text-dark-400 font-mono text-[10px]">Esc</kbd> to go back to home screen
       </p>
-      <button
-        onClick={onFindNew}
-        className="px-6 py-3 rounded-xl bg-primary-500 text-dark-900 font-bold hover:bg-primary-400 active:bg-primary-600 transition-colors flex items-center gap-2 shadow-lg shadow-primary-500/20 text-sm cursor-pointer"
-      >
-        <MessageSquare className="w-4 h-4" aria-hidden="true" />
-        Find New Stranger
-      </button>
     </div>
   );
 }
