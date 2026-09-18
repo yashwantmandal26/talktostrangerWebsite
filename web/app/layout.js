@@ -73,6 +73,9 @@ export const metadata = {
     'geo.placename': 'India',
     'content-language': 'en-IN, hi-IN',
   },
+  verification: {
+    google: 'SE7XZ_6unEMGlKUa0Tz6x2XvaNAI7JRIDlH_Vxw5f3E',
+  },
 };
 
 export default function RootLayout({ children }) {
