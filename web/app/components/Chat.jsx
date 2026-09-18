@@ -22,6 +22,12 @@ import {
   Flame,
   Heart,
   ThumbsUp,
+  ChevronDown,
+  CheckCircle2,
+  Lock,
+  Zap,
+  Globe,
+  HelpCircle,
 } from 'lucide-react';
 import { sound } from '../utils/sound';
 import GameHub from './games/GameHub';
@@ -57,7 +63,8 @@ export default function Chat() {
   const [input, setInput] = useState('');
   const [onlineCount, setOnlineCount] = useState(0);
   const [typing, setTyping] = useState(false);
-  const [showAgeGate, setShowAgeGate] = useState(true);
+  const [hasAcceptedAgeGate, setHasAcceptedAgeGate] = useState(false);
+  const [showAgeGateModal, setShowAgeGateModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [isMuted, setIsMuted] = useState(false);
@@ -84,9 +91,16 @@ export default function Chat() {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // Sync initial sound mute state
+  // Sync initial sound mute state & age verification
   useEffect(() => {
     setIsMuted(sound.isMuted());
+    if (typeof window !== 'undefined') {
+      try {
+        if (localStorage.getItem('talktostrangers_age_verified') === 'true') {
+          setHasAcceptedAgeGate(true);
+        }
+      } catch (e) {}
+    }
   }, []);
 
   const toggleSound = () => {
@@ -249,9 +263,22 @@ export default function Chat() {
     setReportReason('');
   }, [socket, reportReason]);
 
+  const handleStartChat = useCallback(() => {
+    if (!hasAcceptedAgeGate) {
+      setShowAgeGateModal(true);
+      return;
+    }
+    findStranger(selectedInterests);
+  }, [hasAcceptedAgeGate, findStranger, selectedInterests]);
+
   const acceptAgeGate = useCallback(() => {
-    setShowAgeGate(false);
-  }, []);
+    setHasAcceptedAgeGate(true);
+    setShowAgeGateModal(false);
+    try {
+      localStorage.setItem('talktostrangers_age_verified', 'true');
+    } catch (e) {}
+    findStranger(selectedInterests);
+  }, [findStranger, selectedInterests]);
 
   const handleSendIcebreaker = (promptText) => {
     sendMessage(promptText, 'icebreaker');
@@ -268,12 +295,8 @@ export default function Chat() {
     );
   };
 
-  if (showAgeGate) {
-    return <AgeGate onAccept={acceptAgeGate} appName={APP_NAME} />;
-  }
-
   return (
-    <div className="flex flex-col h-[100dvh] max-w-2xl mx-auto bg-dark-900 dark:bg-dark-950 border-x border-dark-800 relative">
+    <div className={`flex flex-col h-[100dvh] ${state === 'IDLE' ? 'max-w-4xl' : 'max-w-2xl'} mx-auto bg-dark-900 dark:bg-dark-950 border-x border-dark-800 relative`}>
       {/* Header */}
       <header className="flex items-center justify-between px-3.5 sm:px-4 py-3 border-b border-dark-800 bg-dark-900/80 backdrop-blur-md sticky top-0 z-20">
         <div className="flex items-center gap-2">
@@ -366,7 +389,7 @@ export default function Chat() {
       <main className="flex-1 overflow-y-auto p-4 space-y-3.5 scrollbar-thin" role="log" aria-live="polite" aria-label="Chat messages">
         {state === 'IDLE' && (
           <LandingView
-            onStart={findStranger}
+            onStart={handleStartChat}
             appName={APP_NAME}
             onlineCount={onlineCount}
             selectedInterests={selectedInterests}
@@ -517,24 +540,46 @@ export default function Chat() {
           setReason={setReportReason}
         />
       )}
+
+      {/* Age Gate Modal */}
+      {showAgeGateModal && (
+        <AgeGateModal
+          appName={APP_NAME}
+          onAccept={acceptAgeGate}
+          onClose={() => setShowAgeGateModal(false)}
+        />
+      )}
     </div>
   );
 }
 
 // ---- Sub-components ----
 
-function AgeGate({ onAccept, appName }) {
+function AgeGateModal({ onAccept, onClose, appName }) {
   const [agreed, setAgreed] = useState(false);
 
   return (
-    <div className="flex h-screen items-center justify-center p-4 bg-dark-950">
-      <div className="w-full max-w-md bg-dark-900 border border-dark-800 rounded-3xl p-6 sm:p-7 shadow-2xl animate-slide-up">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="age-gate-title"
+    >
+      <div className="w-full max-w-md bg-dark-900 border border-dark-800 rounded-3xl p-6 sm:p-7 shadow-2xl animate-slide-up relative">
+        <button
+          onClick={onClose}
+          className="absolute top-5 right-5 p-1.5 rounded-xl text-dark-400 hover:text-dark-100 hover:bg-dark-800 transition-colors"
+          aria-label="Close dialog"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         <div className="text-center mb-6">
           <div className="w-14 h-14 mx-auto rounded-2xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center mb-3">
             <Shield className="w-8 h-8 text-primary-500" aria-hidden="true" />
           </div>
-          <h2 className="text-xl font-bold text-dark-50">Safety First — {appName}</h2>
-          <p className="text-xs text-dark-400 mt-1">Anonymous 1-on-1 talk with Indian strangers</p>
+          <h2 id="age-gate-title" className="text-xl font-bold text-dark-50">Safety First — {appName}</h2>
+          <p className="text-xs text-dark-400 mt-1">Please confirm your age to start chatting anonymously</p>
         </div>
         <ul className="space-y-3 text-xs sm:text-sm text-dark-300 mb-6">
           <li className="flex items-start gap-2.5">
@@ -577,8 +622,41 @@ function AgeGate({ onAccept, appName }) {
   );
 }
 
+const FAQS = [
+  {
+    q: 'What is Talk to Strangers India?',
+    a: 'Talk to Strangers India is a free, mobile-first anonymous 1-on-1 text chat platform designed for Indian users to meet and talk to random strangers safely, share desi icebreakers, and play real-time multiplayer games without registration.',
+  },
+  {
+    q: 'Is Talk to Strangers India completely free?',
+    a: 'Yes, Talk to Strangers India is 100% free forever. There are no subscriptions, no premium coins, no hidden paywalls, and no credit card required.',
+  },
+  {
+    q: 'Do I need to sign up, provide a phone number, or download an app?',
+    a: 'No. You do not need to register, provide an email address, or enter a phone number. The website works directly in any modern mobile or desktop browser with zero installation.',
+  },
+  {
+    q: 'How does Talk to Strangers India protect user privacy and safety?',
+    a: 'We do not store chat logs or personal records. Conversations are ephemeral and end permanently when you disconnect. Automated server-side filters block phone numbers, social media handles, and profanity. A 1-click report button enforces a 24-hour IP ban on violators.',
+  },
+  {
+    q: 'What multiplayer games can I play in the chat?',
+    a: 'You can play Zero Kaata (Tic-Tac-Toe), Stone-Paper-Scissors with simultaneous reveal, and Desi Quiz Duel featuring 5 timed Bollywood, Cricket, and Indian pop-culture trivia questions right inside the chat window.',
+  },
+  {
+    q: 'How does interest matching work?',
+    a: 'You can select preset interest chips such as Cricket & IPL, Bollywood & OTT, Gaming & BGMI, Tech & AI, or add custom tags like UPSC or College to get matched with like-minded Indian strangers.',
+  },
+];
+
+const CITIES = [
+  'Delhi NCR', 'Mumbai', 'Bengaluru', 'Pune', 'Hyderabad', 'Kolkata', 'Chennai',
+  'Ahmedabad', 'Jaipur', 'Chandigarh', 'Lucknow', 'Indore', 'Bhopal', 'Patna', 'Kochi',
+];
+
 function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggleInterest }) {
   const [customTag, setCustomTag] = useState('');
+  const [openFaq, setOpenFaq] = useState(null);
 
   const handleAddCustomTag = (e) => {
     e.preventDefault();
@@ -589,108 +667,311 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
     }
   };
 
+  const toggleFaq = (index) => {
+    setOpenFaq((prev) => (prev === index ? null : index));
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-full px-3 sm:px-4 text-center animate-fade-in py-8">
-      {/* Hero Badge */}
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-xs font-semibold mb-4">
-        <span>🎮 Multiplayer Games & Icebreakers Enabled</span>
-      </div>
-
-      <h2 className="text-3xl sm:text-4xl font-black text-dark-50 tracking-tight mb-2">
-        Talk to Indian Strangers
-      </h2>
-      <p className="text-sm text-dark-400 mb-6 max-w-md">
-        Anonymous 1-on-1 chats, real-time multiplayer mini-games, and desi icebreakers. No signup, no phone numbers, completely free.
-      </p>
-
-      {/* Online Stats Bar */}
-      <div className="flex items-center justify-center gap-4 text-xs text-dark-400 mb-6">
-        <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-dark-800/80 border border-dark-700/60">
-          <Users className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
-          {onlineCount.toLocaleString()} online now
-        </span>
-        <span className="flex items-center gap-1.5 text-green-400 px-3 py-1 rounded-full bg-dark-800/80 border border-dark-700/60">
-          <Shield className="w-3.5 h-3.5" aria-hidden="true" />
-          Safe & Moderated
-        </span>
-      </div>
-
-      {/* Interest Matching Section */}
-      <div className="w-full max-w-lg bg-dark-900/90 border border-dark-800 rounded-3xl p-5 mb-6 text-left shadow-xl">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-sm font-bold text-dark-100 flex items-center gap-1.5">
-              <span>🎯 Choose Your Interests</span>
-              <span className="text-[10px] text-dark-400 font-normal">(Optional)</span>
-            </h3>
-            <p className="text-xs text-dark-400">Match with someone who shares what you love!</p>
-          </div>
-          {selectedInterests.length > 0 && (
-            <button
-              onClick={() => selectedInterests.forEach((id) => onToggleInterest(id))}
-              className="text-[11px] text-dark-400 hover:text-dark-200 underline"
-            >
-              Clear
-            </button>
-          )}
+    <div className="flex flex-col items-center justify-center min-h-full px-3 sm:px-6 text-center animate-fade-in py-6 sm:py-10 space-y-12">
+      {/* Hero Section */}
+      <div className="flex flex-col items-center max-w-2xl mx-auto">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-xs font-semibold mb-4">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>India’s #1 Free Anonymous Stranger Chat & Games</span>
         </div>
 
-        {/* Preset Chips */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          {PRESET_INTERESTS.map((interest) => {
-            const isSelected = selectedInterests.includes(interest.id);
-            return (
+        {/* Primary H1 */}
+        <h1 className="text-3xl sm:text-5xl font-black text-dark-50 tracking-tight mb-3">
+          Talk to Strangers India
+        </h1>
+        <p className="text-sm sm:text-base text-dark-300 mb-6 max-w-xl leading-relaxed">
+          Connect instantly with verified Indian strangers online. Play multiplayer games, share desi icebreakers, or chat freely with shared interests — 100% free, no login, no phone numbers required.
+        </p>
+
+        {/* Online Stats Bar */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 text-xs text-dark-400 mb-6">
+          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-dark-800/80 border border-dark-700/60 font-medium">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
+            <Users className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
+            {onlineCount.toLocaleString()} online now
+          </span>
+          <span className="flex items-center gap-1.5 text-green-400 px-3 py-1 rounded-full bg-dark-800/80 border border-dark-700/60 font-medium">
+            <Shield className="w-3.5 h-3.5" aria-hidden="true" />
+            Safe & IT Act Compliant
+          </span>
+          <span className="flex items-center gap-1.5 text-primary-300 px-3 py-1 rounded-full bg-dark-800/80 border border-dark-700/60 font-medium">
+            <Lock className="w-3.5 h-3.5" aria-hidden="true" />
+            100% Ephemeral & Private
+          </span>
+        </div>
+
+        {/* Interest Matching Section */}
+        <div className="w-full max-w-lg bg-dark-900/95 border border-dark-800 rounded-3xl p-5 mb-6 text-left shadow-2xl">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-sm font-bold text-dark-100 flex items-center gap-1.5">
+                <span>🎯 Choose Your Interests</span>
+                <span className="text-[10px] text-dark-400 font-normal">(Optional)</span>
+              </h2>
+              <p className="text-xs text-dark-400">Match with someone who shares what you love!</p>
+            </div>
+            {selectedInterests.length > 0 && (
               <button
-                key={interest.id}
-                onClick={() => onToggleInterest(interest.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                  isSelected
-                    ? 'bg-primary-500 text-dark-900 font-bold shadow-md shadow-primary-500/20 scale-105'
-                    : 'bg-dark-800 hover:bg-dark-700 text-dark-300 border border-dark-700/60'
-                }`}
+                onClick={() => selectedInterests.forEach((id) => onToggleInterest(id))}
+                className="text-[11px] text-dark-400 hover:text-dark-200 underline cursor-pointer"
               >
-                {interest.label}
+                Clear
               </button>
+            )}
+          </div>
+
+          {/* Preset Chips */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            {PRESET_INTERESTS.map((interest) => {
+              const isSelected = selectedInterests.includes(interest.id);
+              return (
+                <button
+                  key={interest.id}
+                  onClick={() => onToggleInterest(interest.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-primary-500 text-dark-900 font-bold shadow-md shadow-primary-500/20 scale-105'
+                      : 'bg-dark-800 hover:bg-dark-700 text-dark-300 border border-dark-700/60'
+                  }`}
+                >
+                  {interest.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Custom Interest Input */}
+          <form onSubmit={handleAddCustomTag} className="flex gap-2">
+            <input
+              type="text"
+              value={customTag}
+              onChange={(e) => setCustomTag(e.target.value)}
+              placeholder="Add custom topic (e.g. UPSC, Anime, Gym, Coding)…"
+              maxLength={25}
+              className="flex-1 px-3.5 py-2 rounded-xl bg-dark-800 border border-dark-700 text-xs text-dark-100 placeholder-dark-500 outline-none focus:border-primary-500"
+            />
+            <button
+              type="submit"
+              disabled={!customTag.trim()}
+              className="px-3.5 py-2 rounded-xl bg-dark-700 text-dark-200 text-xs font-semibold hover:bg-dark-600 disabled:opacity-40 transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add
+            </button>
+          </form>
+        </div>
+
+        {/* Start Button CTA */}
+        <button
+          onClick={onStart}
+          className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-primary-500 text-dark-900 font-black text-lg hover:bg-primary-400 active:bg-primary-600 transition-all flex items-center justify-center gap-2.5 shadow-xl shadow-primary-500/25 hover:scale-102 cursor-pointer"
+        >
+          <Search className="w-5 h-5" aria-hidden="true" />
+          Start Chatting Now
+        </button>
+
+        <p className="mt-4 text-xs text-dark-500 max-w-xs leading-relaxed">
+          100% anonymous. By starting, you confirm you are 18+ and accept our{' '}
+          <a href="/terms" className="underline hover:text-primary-400">Terms</a>,{' '}
+          <a href="/privacy" className="underline hover:text-primary-400">Privacy</a>, and{' '}
+          <a href="/disclaimer" className="underline hover:text-primary-400">Disclaimer</a>.
+        </p>
+      </div>
+
+      {/* Feature Grid: Why Talk to Strangers India? */}
+      <section className="w-full max-w-3xl text-left pt-6 border-t border-dark-800/80">
+        <div className="text-center mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-dark-50 mb-2">
+            Why Chat On Talk to Strangers India?
+          </h2>
+          <p className="text-xs sm:text-sm text-dark-400 max-w-md mx-auto">
+            Built from the ground up for Indian internet users looking for genuine, spontaneous, and safe conversations.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="p-4 rounded-2xl bg-dark-900/80 border border-dark-800/80 hover:border-primary-500/30 transition-all">
+            <div className="p-2 w-fit rounded-xl bg-primary-500/10 text-primary-400 mb-3">
+              <Gamepad2 className="w-5 h-5" />
+            </div>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">Multiplayer In-Chat Games</h3>
+            <p className="text-xs text-dark-400 leading-relaxed">
+              Duel in Zero Kaata (Tic-Tac-Toe), Stone-Paper-Scissors, or Desi Quiz Duel with live sync while you talk.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-dark-900/80 border border-dark-800/80 hover:border-primary-500/30 transition-all">
+            <div className="p-2 w-fit rounded-xl bg-amber-500/10 text-amber-400 mb-3">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">Desi Icebreaker Prompts</h3>
+            <p className="text-xs text-dark-400 leading-relaxed">
+              Never say an awkward 'Hi' again. 1-click prompts for spicy debates (Maggi with ketchup, Biryani wars, Goa trips).
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-dark-900/80 border border-dark-800/80 hover:border-primary-500/30 transition-all">
+            <div className="p-2 w-fit rounded-xl bg-blue-500/10 text-blue-400 mb-3">
+              <Zap className="w-5 h-5" />
+            </div>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">Interest-Based Matching</h3>
+            <p className="text-xs text-dark-400 leading-relaxed">
+              Match with like-minded strangers who love Cricket & IPL, Bollywood cinema, BGMI, Tech, or Late Night Talks.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-dark-900/80 border border-dark-800/80 hover:border-primary-500/30 transition-all">
+            <div className="p-2 w-fit rounded-xl bg-green-500/10 text-green-400 mb-3">
+              <Shield className="w-5 h-5" />
+            </div>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">Safe & IT Act Compliant</h3>
+            <p className="text-xs text-dark-400 leading-relaxed">
+              Server-side filters automatically strip phone numbers and handles. Instant 24-hour IP ban on reported users.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-dark-900/80 border border-dark-800/80 hover:border-primary-500/30 transition-all">
+            <div className="p-2 w-fit rounded-xl bg-purple-500/10 text-purple-400 mb-3">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">100% Zero Sign-Up</h3>
+            <p className="text-xs text-dark-400 leading-relaxed">
+              No phone verification, no passwords, no email. Jump straight into conversation within seconds.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-dark-900/80 border border-dark-800/80 hover:border-primary-500/30 transition-all">
+            <div className="p-2 w-fit rounded-xl bg-red-500/10 text-red-400 mb-3">
+              <Lock className="w-5 h-5" />
+            </div>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">Fully Ephemeral & Private</h3>
+            <p className="text-xs text-dark-400 leading-relaxed">
+              No chat logs or personal records are ever stored. When your chat ends, everything disappears permanently.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="w-full max-w-3xl text-left pt-6 border-t border-dark-800/80">
+        <div className="text-center mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-dark-50 mb-2">How It Works</h2>
+          <p className="text-xs sm:text-sm text-dark-400">Three simple steps to start chatting with strangers in India</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-5 rounded-2xl bg-dark-900/90 border border-dark-800 text-center sm:text-left">
+            <div className="w-8 h-8 rounded-full bg-primary-500 text-dark-950 font-bold flex items-center justify-center mb-3 text-sm mx-auto sm:mx-0">
+              1
+            </div>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">Pick Your Interests</h3>
+            <p className="text-xs text-dark-400">
+              Select what you love (Cricket, Movies, Tech) or leave it blank to match with any random Indian user.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-dark-900/90 border border-dark-800 text-center sm:text-left">
+            <div className="w-8 h-8 rounded-full bg-primary-500 text-dark-950 font-bold flex items-center justify-center mb-3 text-sm mx-auto sm:mx-0">
+              2
+            </div>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">Instant Matchmaking</h3>
+            <p className="text-xs text-dark-400">
+              Our fast queue pairs you 1-on-1 with an active user in real-time. No long waiting or confusing rooms.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-dark-900/90 border border-dark-800 text-center sm:text-left">
+            <div className="w-8 h-8 rounded-full bg-primary-500 text-dark-950 font-bold flex items-center justify-center mb-3 text-sm mx-auto sm:mx-0">
+              3
+            </div>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">Chat, Play & Connect</h3>
+            <p className="text-xs text-dark-400">
+              Talk freely, challenge your stranger to multiplayer mini-games, or tap Esc anytime to meet someone new.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Popular Cities in India */}
+      <section className="w-full max-w-3xl text-center pt-6 border-t border-dark-800/80">
+        <h2 className="text-sm font-bold text-dark-300 uppercase tracking-wider mb-3 flex items-center justify-center gap-1.5">
+          <Globe className="w-4 h-4 text-primary-400" />
+          <span>Active Users Across Indian Cities & Campuses</span>
+        </h2>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {CITIES.map((city) => (
+            <span
+              key={city}
+              className="px-3 py-1 rounded-full bg-dark-900 border border-dark-800 text-[11px] text-dark-400"
+            >
+              {city}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* Frequently Asked Questions (FAQ Accordion) */}
+      <section className="w-full max-w-3xl text-left pt-6 border-t border-dark-800/80">
+        <div className="text-center mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-dark-50 mb-2">Frequently Asked Questions</h2>
+          <p className="text-xs sm:text-sm text-dark-400">Everything you need to know about Talk to Strangers India</p>
+        </div>
+
+        <div className="space-y-3">
+          {FAQS.map((faq, idx) => {
+            const isOpen = openFaq === idx;
+            return (
+              <div
+                key={idx}
+                className="rounded-2xl bg-dark-900/90 border border-dark-800 overflow-hidden transition-all"
+              >
+                <button
+                  onClick={() => toggleFaq(idx)}
+                  className="w-full p-4 text-left flex items-center justify-between gap-3 text-sm font-bold text-dark-100 hover:text-primary-300 cursor-pointer"
+                  aria-expanded={isOpen}
+                >
+                  <span>{faq.q}</span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-dark-400 transition-transform duration-200 flex-shrink-0 ${
+                      isOpen ? 'rotate-180 text-primary-400' : ''
+                    }`}
+                  />
+                </button>
+                {isOpen && (
+                  <div className="px-4 pb-4 text-xs sm:text-sm text-dark-400 leading-relaxed border-t border-dark-800/50 pt-3 animate-fade-in">
+                    {faq.a}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
+      </section>
 
-        {/* Custom Interest Input */}
-        <form onSubmit={handleAddCustomTag} className="flex gap-2">
-          <input
-            type="text"
-            value={customTag}
-            onChange={(e) => setCustomTag(e.target.value)}
-            placeholder="Add custom topic (e.g. UPSC, Anime, Anime, Gym)…"
-            maxLength={25}
-            className="flex-1 px-3 py-1.5 rounded-xl bg-dark-800 border border-dark-700 text-xs text-dark-100 placeholder-dark-500 outline-none focus:border-primary-500"
-          />
-          <button
-            type="submit"
-            disabled={!customTag.trim()}
-            className="px-3 py-1.5 rounded-xl bg-dark-700 text-dark-200 text-xs font-semibold hover:bg-dark-600 disabled:opacity-40 transition-colors flex items-center gap-1"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add
-          </button>
-        </form>
-      </div>
-
-      {/* Start Button */}
-      <button
-        onClick={() => onStart()}
-        className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-primary-500 text-dark-900 font-bold text-lg hover:bg-primary-400 active:bg-primary-600 transition-all flex items-center justify-center gap-2.5 shadow-xl shadow-primary-500/25 hover:scale-102 cursor-pointer"
-      >
-        <Search className="w-5 h-5" aria-hidden="true" />
-        Start Chatting Now
-      </button>
-
-      <p className="mt-5 text-xs text-dark-500 max-w-xs leading-relaxed">
-        100% anonymous. By starting, you confirm you are 18+ and accept our{' '}
-        <a href="/terms" className="underline hover:text-primary-400">Terms</a>,{' '}
-        <a href="/privacy" className="underline hover:text-primary-400">Privacy</a>, and{' '}
-        <a href="/disclaimer" className="underline hover:text-primary-400">Disclaimer</a>.
-      </p>
+      {/* SEO Footer */}
+      <footer className="w-full max-w-3xl pt-8 pb-4 border-t border-dark-800/80 text-center text-xs text-dark-500 space-y-3">
+        <p className="text-dark-400">
+          <strong>Talk to Strangers India</strong> — The safe, free, anonymous text chat and multiplayer game platform for India.
+        </p>
+        <div className="flex items-center justify-center gap-4 text-xs">
+          <a href="/terms" className="hover:text-primary-400 underline">Terms of Use</a>
+          <span>•</span>
+          <a href="/privacy" className="hover:text-primary-400 underline">Privacy Policy</a>
+          <span>•</span>
+          <a href="/disclaimer" className="hover:text-primary-400 underline">Disclaimer</a>
+          <span>•</span>
+          <a href="mailto:grievance@talktostrangersindia.com" className="hover:text-primary-400 underline">Grievance Redressal</a>
+        </div>
+        <p className="text-[11px] text-dark-600">
+          © {new Date().getFullYear()} Talk to Strangers India. Compliant with Information Technology Act, 2000 & IT Rules 2021.
+        </p>
+      </footer>
     </div>
   );
 }
