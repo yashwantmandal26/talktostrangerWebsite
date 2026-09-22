@@ -1,16 +1,16 @@
 // moderation.js — Safety & compliance filters for Talk to Strangers India (Indian context)
 
 // --- 1. Indian 10-digit mobile numbers (start 6-9), with optional separators ---
-const PHONE_REGEX = /(?:\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}/g;
+const PHONE_REGEX = /(?:\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}/;
 
 // --- 2. WhatsApp / Telegram / Instagram / social links & handles ---
 const SOCIAL_PATTERNS = [
-  /(?:https?:\/\/)?(?:www\.)?(?:wa\.me|whatsapp\.com|t\.me|telegram\.me|instagram\.com|instagr\.am|snapchat\.com|facebook\.com|fb\.com)\S*/gi,
-  /@[a-zA-Z0-9_]{3,30}/g, // @username handles
+  /(?:https?:\/\/)?(?:www\.)?(?:wa\.me|whatsapp\.com|t\.me|telegram\.me|instagram\.com|instagr\.am|snapchat\.com|facebook\.com|fb\.com)\S*/i,
+  /@[a-zA-Z0-9_]{3,30}/, // @username handles
 ];
 
 // --- 3. Common URLs (reduce phishing) ---
-const URL_REGEX = /(?:https?:\/\/|www\.)\S+/gi;
+const URL_REGEX = /(?:https?:\/\/|www\.)\S+/i;
 
 // --- 4. Profanity / abuse list (English + transliterated Hindi, kept moderate) ---
 const PROFANITY = [
@@ -22,7 +22,7 @@ const PROFANITY = [
 ];
 const PROFANITY_REGEX = new RegExp(
   '\\b(' + PROFANITY.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b',
-  'gi'
+  'i'
 );
 
 /**

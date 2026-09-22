@@ -58,6 +58,7 @@ const QUICK_PHRASES = [
 
 export default function Chat() {
   const [socket, setSocket] = useState(null);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [state, setState] = useState('IDLE'); // 'IDLE' | 'SEARCHING' | 'CONNECTED' | 'DISCONNECTED'
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -83,6 +84,7 @@ export default function Chat() {
   const mainScrollRef = useRef(null);
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const pendingFindStrangerRef = useRef(null);
 
   // Only scroll to bottom when actively chatting (CONNECTED state with messages)
   useEffect(() => {
@@ -121,17 +123,28 @@ export default function Chat() {
     const newSocket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 10,
+      reconnectionAttempts: 15,
       reconnectionDelay: 1000,
-      timeout: 20000,
+      timeout: 30000,
     });
 
     newSocket.on('connect', () => {
       console.log('[socket] connected', newSocket.id);
+      setIsSocketConnected(true);
+      if (pendingFindStrangerRef.current !== null) {
+        const interests = pendingFindStrangerRef.current;
+        pendingFindStrangerRef.current = null;
+        newSocket.emit('find_stranger', { interests });
+      }
+    });
+
+    newSocket.on('disconnect', () => {
+      setIsSocketConnected(false);
     });
 
     newSocket.on('connect_error', (err) => {
       console.error('[socket] connect_error', err.message);
+      setIsSocketConnected(false);
     });
 
     newSocket.on('online_count', ({ count }) => setOnlineCount(count));
@@ -203,18 +216,55 @@ export default function Chat() {
   }, []);
 
   const findStranger = useCallback((interests = selectedInterests) => {
-    if (!socket) return;
     setMessages([]);
     setState('SEARCHING');
     setIncomingGameInvite(null);
-    socket.emit('find_stranger', { interests });
+    if (socket && socket.connected) {
+      socket.emit('find_stranger', { interests });
+    } else {
+      pendingFindStrangerRef.current = interests;
+    }
   }, [socket, selectedInterests]);
 
+  const nextStranger = useCallback((interests = selectedInterests) => {
+    if (socket && state === 'CONNECTED') {
+      socket.emit('skip_chat');
+    }
+    setMessages([]);
+    setState('SEARCHING');
+    setTyping(false);
+    setIncomingGameInvite(null);
+    setIsGameHubOpen(false);
+    if (socket && socket.connected) {
+      socket.emit('find_stranger', { interests });
+    } else {
+      pendingFindStrangerRef.current = interests;
+    }
+  }, [socket, state, selectedInterests]);
+
   const cancelSearch = useCallback(() => {
-    if (!socket) return;
-    socket.emit('cancel_search');
+    pendingFindStrangerRef.current = null;
+    if (socket) {
+      socket.emit('cancel_search');
+    }
     setState('IDLE');
   }, [socket]);
+
+  const goHome = useCallback(() => {
+    pendingFindStrangerRef.current = null;
+    if (socket) {
+      if (state === 'CONNECTED') {
+        socket.emit('skip_chat');
+      } else if (state === 'SEARCHING') {
+        socket.emit('cancel_search');
+      }
+    }
+    setMessages([]);
+    setState('IDLE');
+    setTyping(false);
+    setIncomingGameInvite(null);
+    setIsGameHubOpen(false);
+  }, [socket, state]);
 
   const skipInterestFilter = useCallback(() => {
     if (!socket) return;
@@ -248,28 +298,16 @@ export default function Chat() {
     }, 2000);
   }, [socket, state]);
 
-  const skipChat = useCallback(() => {
-    if (!socket) return;
-    if (state === 'CONNECTED') {
-      socket.emit('skip_chat');
-    } else if (state === 'SEARCHING') {
-      socket.emit('cancel_search');
-    }
-    setMessages([]);
-    setState('IDLE');
-    setTyping(false);
-    setIncomingGameInvite(null);
-    setIsGameHubOpen(false);
-  }, [socket, state]);
-
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
     if (e.key === 'Escape') {
-      if (state === 'CONNECTED' || state === 'SEARCHING') {
-        skipChat();
+      if (state === 'CONNECTED') {
+        nextStranger();
+      } else if (state === 'SEARCHING' || state === 'DISCONNECTED') {
+        goHome();
       }
     }
     // Shortcuts: Alt+G for games, Alt+I for icebreakers
@@ -281,7 +319,7 @@ export default function Chat() {
       e.preventDefault();
       if (state === 'CONNECTED') setIsIcebreakerOpen((prev) => !prev);
     }
-  }, [sendMessage, state, skipChat]);
+  }, [sendMessage, state, nextStranger, goHome]);
 
   const handleReport = useCallback(() => {
     if (!socket) return;
@@ -327,7 +365,11 @@ export default function Chat() {
       {/* Header */}
       <header className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-dark-800 bg-dark-900/90 backdrop-blur-md sticky top-0 z-20 pt-safe">
         {/* Branding */}
-        <div className="flex items-center gap-2 min-w-0">
+        <button
+          onClick={goHome}
+          className="flex items-center gap-2 min-w-0 text-left cursor-pointer hover:opacity-90 transition-opacity"
+          title="Back to Home"
+        >
           <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-primary-500/10 text-primary-400 flex items-center justify-center">
             <MessageSquare className="w-4 h-4" aria-hidden="true" />
           </div>
@@ -338,19 +380,19 @@ export default function Chat() {
             </h1>
             {/* Online count — visible on mobile below title */}
             <p className="text-[10px] text-dark-500 flex items-center gap-1 sm:hidden">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-              {onlineCount.toLocaleString()} online
+              <span className={`w-1.5 h-1.5 rounded-full inline-block ${isSocketConnected ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} />
+              {isSocketConnected ? `${onlineCount.toLocaleString()} online` : 'Connecting...'}
             </p>
           </div>
-        </div>
+        </button>
 
         {/* Header Actions */}
         <div className="flex items-center gap-0.5 sm:gap-1.5 flex-shrink-0">
-          {/* Online count — desktop only */}
+          {/* Online count / Connection indicator — desktop only */}
           <span className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-dark-800/80 border border-dark-700/60 text-dark-300 text-xs font-medium mr-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+            <span className={`w-1.5 h-1.5 rounded-full ${isSocketConnected ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} />
             <Users className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
-            <span>{onlineCount.toLocaleString()} online</span>
+            <span>{isSocketConnected ? `${onlineCount.toLocaleString()} online` : 'Connecting...'}</span>
           </span>
 
           {/* Sound Toggle */}
@@ -389,23 +431,30 @@ export default function Chat() {
             </>
           )}
 
-          {/* Skip / Cancel / New Chat */}
-          <button
-            onClick={skipChat}
-            disabled={state === 'IDLE'}
-            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
-              state === 'SEARCHING'
-                ? 'text-red-400 hover:text-red-300 hover:bg-red-500/10 active:bg-red-500/20'
-                : 'text-dark-400 hover:text-dark-100 hover:bg-dark-800 active:bg-dark-700'
-            }`}
-            aria-label={state === 'SEARCHING' ? 'Cancel search' : 'New chat / Skip'}
-            title={state === 'SEARCHING' ? 'Cancel Search (Esc)' : 'New Chat (Esc)'}
-          >
-            {state === 'SEARCHING'
-              ? <X className="w-4 h-4" aria-hidden="true" />
-              : <SkipForward className="w-4 h-4" aria-hidden="true" />
-            }
-          </button>
+          {/* Skip / Cancel / New Chat Button */}
+          {state === 'SEARCHING' && (
+            <button
+              onClick={cancelSearch}
+              className="px-3 py-1.5 rounded-xl transition-colors text-red-400 hover:text-red-300 hover:bg-red-500/10 active:bg-red-500/20 cursor-pointer flex items-center gap-1 text-xs font-semibold"
+              aria-label="Cancel search"
+              title="Cancel Search (Esc)"
+            >
+              <X className="w-4 h-4" aria-hidden="true" />
+              <span>Cancel</span>
+            </button>
+          )}
+
+          {state === 'CONNECTED' && (
+            <button
+              onClick={() => nextStranger()}
+              className="px-3 py-1.5 rounded-xl transition-colors text-dark-300 hover:text-dark-100 hover:bg-dark-800 active:bg-dark-700 cursor-pointer flex items-center gap-1 text-xs font-semibold border border-dark-700"
+              aria-label="Next stranger"
+              title="Next Stranger (Esc)"
+            >
+              <SkipForward className="w-4 h-4" aria-hidden="true" />
+              <span>Next</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -437,7 +486,7 @@ export default function Chat() {
 
           {/* Skip / Next button — right here near the context */}
           <button
-            onClick={skipChat}
+            onClick={() => nextStranger()}
             className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dark-800 border border-dark-700 text-dark-300 text-xs font-semibold hover:bg-dark-700 hover:text-dark-100 hover:border-dark-600 active:bg-dark-600 active:scale-95 transition-all cursor-pointer"
             title="Skip to next stranger (Esc)"
           >
@@ -464,6 +513,7 @@ export default function Chat() {
             selectedInterests={selectedInterests}
             onCancel={cancelSearch}
             onSkipFilter={skipInterestFilter}
+            isSocketConnected={isSocketConnected}
           />
         )}
         {messages.map((msg) => (
@@ -471,8 +521,8 @@ export default function Chat() {
         ))}
         {state === 'DISCONNECTED' && (
           <DisconnectedView
-            onFindNew={() => findStranger(selectedInterests)}
-            onGoHome={() => setState('IDLE')}
+            onFindNew={() => nextStranger(selectedInterests)}
+            onGoHome={goHome}
           />
         )}
         <div ref={messagesEndRef} />
@@ -571,11 +621,11 @@ export default function Chat() {
                 <Send className="w-4.5 h-4.5" aria-hidden="true" />
               </button>
 
-              {/* Skip — right next to send */}
+              {/* Skip / Next — right next to send */}
               <button
-                onClick={skipChat}
+                onClick={() => nextStranger()}
                 className="w-10 h-10 flex items-center justify-center rounded-xl bg-dark-800/80 border border-dark-700/60 text-dark-400 hover:text-dark-100 hover:bg-dark-700 hover:border-dark-600 active:bg-dark-600 active:scale-95 transition-all cursor-pointer"
-                aria-label="Skip to next stranger"
+                aria-label="Next stranger"
                 title="Next stranger (Esc)"
               >
                 <SkipForward className="w-5 h-5" aria-hidden="true" />
@@ -1092,7 +1142,7 @@ const DESI_TIPS = [
   { emoji: '✨', text: 'Try an Icebreaker! Tap the ✨ icon to send a fun desi conversation starter.' },
 ];
 
-function SearchingView({ onlineCount, selectedInterests, onCancel, onSkipFilter }) {
+function SearchingView({ onlineCount, selectedInterests, onCancel, onSkipFilter, isSocketConnected }) {
   const [elapsed, setElapsed] = useState(0);
   const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * DESI_TIPS.length));
   const [tipVisible, setTipVisible] = useState(true);
@@ -1126,7 +1176,15 @@ function SearchingView({ onlineCount, selectedInterests, onCancel, onSkipFilter 
   const tip = DESI_TIPS[tipIndex];
 
   return (
-    <div className="flex flex-col items-center justify-center h-full px-4 text-center animate-fade-in py-8 gap-0">
+    <div className="flex flex-col items-center justify-center min-h-[65vh] px-4 text-center animate-fade-in py-6 sm:py-8 gap-0">
+      {/* Free Tier Server Wakeup Notice */}
+      {!isSocketConnected && (
+        <div className="mb-4 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2 animate-pulse">
+          <span className="w-2 h-2 rounded-full bg-amber-400" />
+          <span>Waking up free server (~15-20s)... Finding match right after</span>
+        </div>
+      )}
+
       {/* Spinner + Flag */}
       <div className="relative mb-5">
         {/* Outer glow ring */}
@@ -1141,7 +1199,7 @@ function SearchingView({ onlineCount, selectedInterests, onCancel, onSkipFilter 
         ⏱ Searching for {formatTime(elapsed)}
       </p>
       <p className="text-xs text-dark-500 mb-5">
-        {onlineCount.toLocaleString()} users online right now
+        {isSocketConnected ? `${onlineCount.toLocaleString()} users online right now` : 'Connecting to match queue...'}
       </p>
 
       {/* Active interest tags */}
