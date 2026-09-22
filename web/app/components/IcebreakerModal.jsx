@@ -30,7 +30,7 @@ export default function IcebreakerModal({ isOpen, onClose, onSendIcebreaker }) {
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-full max-w-md bg-dark-900 border border-dark-800 rounded-3xl p-5 sm:p-6 shadow-2xl animate-slide-up">
+      <div className="w-full max-w-md bg-dark-900 border border-dark-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl animate-slide-up max-h-[88dvh] overflow-y-auto scrollbar-thin">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-dark-800 mb-4">
           <div className="flex items-center gap-2">

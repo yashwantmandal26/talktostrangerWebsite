@@ -390,7 +390,7 @@ export default function Chat() {
         </button>
 
         {/* Header Actions */}
-        <div className="flex items-center gap-0.5 sm:gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
           {/* Online count / Connection indicator — desktop only */}
           <span className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-dark-800/80 border border-dark-700/60 text-dark-300 text-xs font-medium mr-1">
             <span className={`w-1.5 h-1.5 rounded-full ${isSocketConnected ? 'bg-green-500' : 'bg-amber-500 animate-pulse'}`} />
@@ -401,7 +401,7 @@ export default function Chat() {
           {/* Sound Toggle */}
           <button
             onClick={toggleSound}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-dark-400 hover:text-dark-100 hover:bg-dark-800 active:bg-dark-700 transition-colors cursor-pointer"
+            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-dark-400 hover:text-dark-100 hover:bg-dark-800 active:bg-dark-700 transition-colors cursor-pointer"
             aria-label={isMuted ? 'Unmute audio' : 'Mute audio'}
             title={isMuted ? 'Unmute' : 'Mute'}
           >
@@ -413,7 +413,7 @@ export default function Chat() {
             <>
               <button
                 onClick={() => setIsIcebreakerOpen(true)}
-                className="w-10 h-10 flex items-center justify-center rounded-xl text-amber-400 hover:text-amber-300 hover:bg-dark-800 active:bg-dark-700 transition-colors cursor-pointer"
+                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-amber-400 hover:text-amber-300 hover:bg-dark-800 active:bg-dark-700 transition-colors cursor-pointer"
                 title="Break The Ice (Alt+I)"
                 aria-label="Icebreaker prompts"
               >
@@ -422,7 +422,7 @@ export default function Chat() {
 
               <button
                 onClick={() => setIsGameHubOpen(true)}
-                className="relative w-10 h-10 flex items-center justify-center rounded-xl bg-primary-500/10 text-primary-400 hover:bg-primary-500/20 hover:text-primary-300 active:bg-primary-500/30 transition-colors cursor-pointer"
+                className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-primary-500/10 text-primary-400 hover:bg-primary-500/20 hover:text-primary-300 active:bg-primary-500/30 transition-colors cursor-pointer"
                 title="Play Games (Alt+G)"
                 aria-label="Open game hub"
               >
@@ -438,7 +438,7 @@ export default function Chat() {
           {state === 'SEARCHING' && (
             <button
               onClick={cancelSearch}
-              className="px-3 py-1.5 rounded-xl transition-colors text-red-400 hover:text-red-300 hover:bg-red-500/10 active:bg-red-500/20 cursor-pointer flex items-center gap-1 text-xs font-semibold"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl transition-colors text-red-400 hover:text-red-300 hover:bg-red-500/10 active:bg-red-500/20 cursor-pointer flex items-center gap-1 text-xs font-semibold"
               aria-label="Cancel search"
               title="Cancel Search (Esc)"
             >
@@ -450,11 +450,11 @@ export default function Chat() {
           {state === 'CONNECTED' && (
             <button
               onClick={() => nextStranger()}
-              className="px-3 py-1.5 rounded-xl transition-colors text-dark-300 hover:text-dark-100 hover:bg-dark-800 active:bg-dark-700 cursor-pointer flex items-center gap-1 text-xs font-semibold border border-dark-700"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl transition-colors text-dark-300 hover:text-dark-100 hover:bg-dark-800 active:bg-dark-700 cursor-pointer flex items-center gap-1 text-xs font-semibold border border-dark-700"
               aria-label="Next stranger"
               title="Next Stranger (Esc)"
             >
-              <SkipForward className="w-4 h-4" aria-hidden="true" />
+              <SkipForward className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Next</span>
             </button>
           )}
@@ -463,34 +463,31 @@ export default function Chat() {
 
       {/* Connected Status Bar */}
       {state === 'CONNECTED' && (
-        <div className="px-3 sm:px-4 py-2 bg-dark-900/95 border-b border-dark-800 flex items-center gap-2 animate-fade-in">
-          {/* Stranger Avatar */}
-          <div className="relative flex-shrink-0">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center text-xs font-bold text-dark-900">
-              S
-            </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-dark-900" />
-          </div>
-
-          {/* Status text + interests */}
-          <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
-            <span className="text-xs font-semibold text-dark-100 whitespace-nowrap">Stranger</span>
-            <span className="text-[10px] text-green-400 font-medium whitespace-nowrap">● connected</span>
-            {commonInterests.length > 0 && (
-              <div className="flex gap-1 overflow-x-auto scrollbar-thin">
-                {commonInterests.map((interest) => (
-                  <span key={interest} className="flex-shrink-0 px-2 py-0.5 rounded-full bg-primary-500/20 text-primary-300 text-[10px] font-medium capitalize border border-primary-500/20">
-                    {interest}
-                  </span>
-                ))}
+        <div className="px-3 sm:px-4 py-2 bg-dark-900/95 border-b border-dark-800 flex items-center justify-between gap-2 animate-fade-in">
+          {/* Stranger Avatar & Status info */}
+          <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+            <div className="relative flex-shrink-0">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-amber-500 flex items-center justify-center text-xs font-bold text-dark-900">
+                S
               </div>
-            )}
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-dark-900" />
+            </div>
+
+            <div className="min-w-0 flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+              <span className="text-xs font-semibold text-dark-100 whitespace-nowrap">Stranger</span>
+              <span className="text-[10px] text-green-400 font-medium whitespace-nowrap">● connected</span>
+              {commonInterests.map((interest) => (
+                <span key={interest} className="flex-shrink-0 px-2 py-0.5 rounded-full bg-primary-500/20 text-primary-300 text-[10px] font-medium capitalize border border-primary-500/20 whitespace-nowrap">
+                  {interest}
+                </span>
+              ))}
+            </div>
           </div>
 
-          {/* Skip / Next button — right here near the context */}
+          {/* Skip / Next button */}
           <button
             onClick={() => nextStranger()}
-            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-dark-800 border border-dark-700 text-dark-300 text-xs font-semibold hover:bg-dark-700 hover:text-dark-100 hover:border-dark-600 active:bg-dark-600 active:scale-95 transition-all cursor-pointer"
+            className="flex-shrink-0 flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-dark-800 border border-dark-700 text-dark-300 text-xs font-semibold hover:bg-dark-700 hover:text-dark-100 hover:border-dark-600 active:bg-dark-600 active:scale-95 transition-all cursor-pointer"
             title="Skip to next stranger (Esc)"
           >
             <SkipForward className="w-3.5 h-3.5" />
@@ -550,12 +547,12 @@ export default function Chat() {
         <div className="border-t border-dark-800/80 bg-dark-900/95 backdrop-blur-xl pb-safe">
           {/* Quick Reactions Drawer */}
           {showReactionsBar && (
-            <div className="px-3 py-2 border-b border-dark-800/60 flex items-center gap-1 overflow-x-auto scrollbar-thin animate-slide-up">
+            <div className="px-2.5 sm:px-3 py-2 border-b border-dark-800/60 flex items-center gap-1 overflow-x-auto scrollbar-thin animate-slide-up">
               {QUICK_REACTIONS.map((emoji) => (
                 <button
                   key={emoji}
                   onClick={() => handleSendReaction(emoji)}
-                  className="text-xl w-11 h-11 flex items-center justify-center hover:scale-125 active:scale-90 transition-transform flex-shrink-0 rounded-xl hover:bg-dark-800"
+                  className="text-xl w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center hover:scale-125 active:scale-90 transition-transform flex-shrink-0 rounded-xl hover:bg-dark-800"
                   title={`Send ${emoji}`}
                 >
                   {emoji}
@@ -575,9 +572,9 @@ export default function Chat() {
           )}
 
           {/* Main Input Row */}
-          <div className="px-2 sm:px-3 py-2 flex items-end gap-1.5">
+          <div className="px-2 sm:px-3 py-1.5 sm:py-2 flex items-end gap-1 sm:gap-1.5">
             {/* Left action buttons */}
-            <div className="flex items-center gap-1 flex-shrink-0 pb-0.5">
+            <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 pb-0.5">
               <button
                 onClick={() => setShowReactionsBar((prev) => !prev)}
                 className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all cursor-pointer ${
@@ -607,9 +604,9 @@ export default function Chat() {
               placeholder="Type a message…"
               maxLength={500}
               rows={1}
-              className="flex-1 resize-none bg-dark-800/80 border border-dark-700/80 focus:border-primary-500/60 focus:ring-1 focus:ring-primary-500/30 text-dark-50 placeholder-dark-600 rounded-2xl px-4 py-2.5 text-base outline-none leading-normal transition-all"
+              className="flex-1 min-w-0 resize-none bg-dark-800/80 border border-dark-700/80 focus:border-primary-500/60 focus:ring-1 focus:ring-primary-500/30 text-dark-50 placeholder-dark-600 rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-base outline-none leading-normal transition-all"
               aria-label="Message input"
-              style={{ minHeight: '44px', maxHeight: '120px' }}
+              style={{ minHeight: '42px', maxHeight: '120px' }}
             />
 
             {/* Right action buttons */}
@@ -618,20 +615,20 @@ export default function Chat() {
               <button
                 onClick={() => sendMessage()}
                 disabled={!input.trim()}
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-dark-900 hover:from-primary-400 hover:to-primary-500 active:from-primary-600 active:to-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0 cursor-pointer shadow-lg shadow-primary-500/25"
+                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-dark-900 hover:from-primary-400 hover:to-primary-500 active:from-primary-600 active:to-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0 cursor-pointer shadow-lg shadow-primary-500/25"
                 aria-label="Send message"
               >
-                <Send className="w-4.5 h-4.5" aria-hidden="true" />
+                <Send className="w-4 h-4 sm:w-4.5 sm:h-4.5" aria-hidden="true" />
               </button>
 
-              {/* Skip / Next — right next to send */}
+              {/* Skip / Next */}
               <button
                 onClick={() => nextStranger()}
-                className="w-10 h-10 flex items-center justify-center rounded-xl bg-dark-800/80 border border-dark-700/60 text-dark-400 hover:text-dark-100 hover:bg-dark-700 hover:border-dark-600 active:bg-dark-600 active:scale-95 transition-all cursor-pointer"
+                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-dark-800/80 border border-dark-700/60 text-dark-400 hover:text-dark-100 hover:bg-dark-700 hover:border-dark-600 active:bg-dark-600 active:scale-95 transition-all cursor-pointer"
                 aria-label="Next stranger"
                 title="Next stranger (Esc)"
               >
-                <SkipForward className="w-5 h-5" aria-hidden="true" />
+                <SkipForward className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
               </button>
             </div>
           </div>

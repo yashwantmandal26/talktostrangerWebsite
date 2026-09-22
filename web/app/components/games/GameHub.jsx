@@ -166,7 +166,7 @@ export default function GameHub({
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-full max-w-md bg-dark-900 border border-dark-800 rounded-3xl p-5 sm:p-6 shadow-2xl animate-slide-up relative max-h-[92vh] overflow-y-auto scrollbar-thin">
+      <div className="w-full max-w-md bg-dark-900 border border-dark-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl animate-slide-up relative max-h-[88dvh] overflow-y-auto scrollbar-thin">
         {/* If an active game is currently in session */}
         {activeGame ? (
           <div>

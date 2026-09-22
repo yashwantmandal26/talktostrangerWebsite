@@ -166,32 +166,32 @@ export default function RockPaperScissors({ socket, sound, onClose }) {
 
       {/* Duel Arena / Showdown View */}
       {(revealing || roundWinner) ? (
-        <div className="flex items-center justify-center gap-6 my-4 p-5 rounded-2xl bg-dark-950/80 border border-dark-800 w-full animate-fade-in">
+        <div className="flex items-center justify-center gap-3 sm:gap-6 my-3 sm:my-4 p-3.5 sm:p-5 rounded-2xl bg-dark-950/80 border border-dark-800 w-full animate-fade-in">
           <div className="flex flex-col items-center">
-            <span className="text-xs text-primary-400 font-semibold mb-1">YOU</span>
-            <div className="w-20 h-20 rounded-2xl bg-dark-800/90 border border-primary-500/40 flex items-center justify-center text-4xl shadow-lg">
+            <span className="text-[11px] sm:text-xs text-primary-400 font-semibold mb-1">YOU</span>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-dark-800/90 border border-primary-500/40 flex items-center justify-center text-3xl sm:text-4xl shadow-lg">
               {revealing ? '✊' : getEmoji(myChoice)}
             </div>
-            <span className="text-xs text-dark-400 mt-2 font-medium capitalize">
+            <span className="text-[11px] sm:text-xs text-dark-400 mt-1.5 font-medium capitalize truncate max-w-[80px]">
               {revealing ? '...' : myChoice}
             </span>
           </div>
 
-          <div className="text-xl font-bold text-dark-500 italic">VS</div>
+          <div className="text-lg sm:text-xl font-bold text-dark-500 italic px-1">VS</div>
 
           <div className="flex flex-col items-center">
-            <span className="text-xs text-blue-400 font-semibold mb-1">STRANGER</span>
-            <div className="w-20 h-20 rounded-2xl bg-dark-800/90 border border-blue-500/40 flex items-center justify-center text-4xl shadow-lg">
+            <span className="text-[11px] sm:text-xs text-blue-400 font-semibold mb-1">STRANGER</span>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-dark-800/90 border border-blue-500/40 flex items-center justify-center text-3xl sm:text-4xl shadow-lg">
               {revealing ? '✊' : getEmoji(strangerChoice)}
             </div>
-            <span className="text-xs text-dark-400 mt-2 font-medium capitalize">
+            <span className="text-[11px] sm:text-xs text-dark-400 mt-1.5 font-medium capitalize truncate max-w-[80px]">
               {revealing ? '...' : strangerChoice}
             </span>
           </div>
         </div>
       ) : (
         /* Move Selection Buttons */
-        <div className="grid grid-cols-3 gap-3 w-full my-2">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full my-2">
           {CHOICES.map((choice) => {
             const isSelected = myChoice === choice.id;
             return (
@@ -199,7 +199,7 @@ export default function RockPaperScissors({ socket, sound, onClose }) {
                 key={choice.id}
                 onClick={() => handlePick(choice.id)}
                 disabled={!!myChoice}
-                className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border transition-all ${
+                className={`flex flex-col items-center justify-center p-2.5 sm:p-4 rounded-2xl border transition-all ${
                   isSelected
                     ? 'bg-primary-500/20 border-primary-500 scale-105 shadow-lg shadow-primary-500/20'
                     : myChoice
@@ -207,8 +207,8 @@ export default function RockPaperScissors({ socket, sound, onClose }) {
                     : 'bg-dark-800/80 hover:bg-dark-700/90 border-dark-700 hover:border-primary-500/50 cursor-pointer active:scale-95'
                 }`}
               >
-                <span className="text-3xl sm:text-4xl mb-1.5">{choice.emoji}</span>
-                <span className="text-xs font-medium text-dark-200 text-center leading-tight">
+                <span className="text-2xl sm:text-4xl mb-1">{choice.emoji}</span>
+                <span className="text-[11px] sm:text-xs font-medium text-dark-200 text-center leading-tight">
                   {choice.label}
                 </span>
               </button>
