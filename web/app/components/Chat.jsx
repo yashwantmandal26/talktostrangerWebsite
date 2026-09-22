@@ -38,22 +38,25 @@ const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Talk to Strangers India';
 
 const PRESET_INTERESTS = [
   { id: 'cricket', label: '🏏 Cricket & IPL' },
-  { id: 'bollywood', label: '🎬 Bollywood & OTT' },
+  { id: 'bollywood', label: '🎬 Bollywood & Web Series' },
   { id: 'gaming', label: '🎮 Gaming & BGMI' },
-  { id: 'tech', label: '💻 Tech & AI' },
-  { id: 'music', label: '🎵 Music & Songs' },
   { id: 'latenight', label: '☕ Late Night Talks' },
+  { id: 'tech', label: '💻 Tech & AI' },
   { id: 'food', label: '🍕 Foodies & Chai' },
-  { id: 'college', label: '📚 College & Exams' },
+  { id: 'college', label: '📚 College & UPSC' },
+  { id: 'music', label: '🎧 Music & Desi Hip-Hop' },
+  { id: 'travel', label: '✈️ Travel & Goa Trips' },
+  { id: 'memes', label: '🎭 Standup & Memes' },
 ];
 
-const QUICK_REACTIONS = ['❤️', '😂', '🔥', '👏', '🇮🇳', '🤝', '👍'];
+const QUICK_REACTIONS = ['❤️', '😂', '🔥', '👏', '🇮🇳', '🤝', '👍', '☕'];
 const QUICK_PHRASES = [
   'Haha sahi hai! 😂',
   'Arey waah! 🔥',
-  'Sach me? 🤯',
-  'Badiya bhai! 🤝',
-  'GG! 🎮',
+  'Sach me bhai? 🤯',
+  'Chai pe charcha! ☕',
+  'Badhiya baat boli 🤝',
+  'GG! Kya match tha 🎮',
 ];
 
 export default function Chat() {
@@ -770,33 +773,38 @@ function AgeGateModal({ onAccept, onClose, appName }) {
 const FAQS = [
   {
     q: 'What is Talk to Strangers India?',
-    a: 'Talk to Strangers India is a free, mobile-first anonymous 1-on-1 text chat platform designed for Indian users to meet and talk to random strangers safely, share desi icebreakers, and play real-time multiplayer games without registration.',
+    a: 'Talk to Strangers India is a 100% free, anonymous 1-on-1 text chat and mini-games platform built specifically for Indian internet users. Connect instantly with verified Indian strangers online, send spicy desi icebreakers, and duel in real-time multiplayer games without registration.',
   },
   {
-    q: 'Is Talk to Strangers India completely free?',
-    a: 'Yes, Talk to Strangers India is 100% free forever. There are no subscriptions, no premium coins, no hidden paywalls, and no credit card required.',
+    q: 'Is Talk to Strangers India completely free to use?',
+    a: 'Yes, completely free forever! There are no subscriptions, no premium passes, no hidden paywalls, and no credit card required. Everything from text chat to multiplayer mini-games is 100% free.',
   },
   {
-    q: 'Do I need to sign up, provide a phone number, or download an app?',
-    a: 'No. You do not need to register, provide an email address, or enter a phone number. The website works directly in any modern mobile or desktop browser with zero installation.',
+    q: 'Do I need to sign up, enter a phone number, or install an app?',
+    a: 'Zero registration needed! No email, no mobile number, no OTP, and no app download. Simply open the website in Chrome, Safari, or any browser on your phone or PC, tap "Start Chatting Now", and jump straight in.',
   },
   {
-    q: 'How does Talk to Strangers India protect user privacy and safety?',
-    a: 'We do not store chat logs or personal records. Conversations are ephemeral and end permanently when you disconnect. Automated server-side filters block phone numbers, social media handles, and profanity. A 1-click report button enforces a 24-hour IP ban on violators.',
+    q: 'How are privacy and safety protected on this platform?',
+    a: 'We prioritize your privacy above all: 1) Zero chat logs are stored on our servers — when you leave, all messages vanish permanently. 2) Real-time safety filters block phone numbers, social handles, and abusive words. 3) A 1-click report button immediately blocks violators by IP for 24 hours in compliance with the Indian IT Act, 2000.',
   },
   {
-    q: 'What multiplayer games can I play in the chat?',
-    a: 'You can play Zero Kaata (Tic-Tac-Toe), Stone-Paper-Scissors with simultaneous reveal, and Desi Quiz Duel featuring 5 timed Bollywood, Cricket, and Indian pop-culture trivia questions right inside the chat window.',
+    q: 'What multiplayer games can I play while chatting?',
+    a: 'You can duel your stranger in 3 interactive games right inside the chat window: Zero Kaata (Tic-Tac-Toe), Stone-Paper-Scissors with simultaneous dramatic reveal, and Desi Quiz Duel featuring timed questions on Bollywood, Cricket, Memes, and Indian pop culture.',
   },
   {
-    q: 'How does interest matching work?',
-    a: 'You can select preset interest chips such as Cricket & IPL, Bollywood & OTT, Gaming & BGMI, Tech & AI, or add custom tags like UPSC or College to get matched with like-minded Indian strangers.',
+    q: 'How does interest-based matchmaking work?',
+    a: 'Select preset topic chips like Cricket & IPL, Bollywood, BGMI, Tech & AI, or Late Night Talks — or type any custom topic (e.g., UPSC, Gym, Anime, Goa). Our queue will prioritize pairing you with someone who selected the exact same interests!',
+  },
+  {
+    q: 'How do I skip or find a new stranger quickly?',
+    a: 'Simply click the "Next" button right next to the message textbox or press the "Esc" key on your keyboard to instantly jump to a new stranger without returning to the home screen.',
   },
 ];
 
 const CITIES = [
   'Delhi NCR', 'Mumbai', 'Bengaluru', 'Pune', 'Hyderabad', 'Kolkata', 'Chennai',
   'Ahmedabad', 'Jaipur', 'Chandigarh', 'Lucknow', 'Indore', 'Bhopal', 'Patna', 'Kochi',
+  'Surat', 'Nagpur', 'Goa', 'Dehradun', 'Varanasi',
 ];
 
 function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggleInterest }) {
@@ -824,7 +832,7 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary-500/15 to-amber-500/10 border border-primary-500/25 text-primary-300 text-xs font-semibold mb-5 animate-fade-in">
           <span className="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse" />
           <Sparkles className="w-3.5 h-3.5" />
-          <span>India's #1 Free Anonymous Chat & Games</span>
+          <span>India's Favorite Free Anonymous Chat & Games</span>
         </div>
 
         {/* Gradient H1 */}
@@ -835,22 +843,22 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
           <br />
           <span className="text-dark-50">India 🇮🇳</span>
         </h1>
-        <p className="text-sm sm:text-base text-dark-400 mb-6 max-w-xl leading-relaxed">
-          Connect instantly with Indian strangers. Play multiplayer games, share desi icebreakers — 100% free, no login required.
+        <p className="text-sm sm:text-base text-dark-300 mb-6 max-w-xl leading-relaxed">
+          Meet interesting people across India in seconds. Play multiplayer mini-games, debate Biryani vs Maggi, and share spontaneous late-night thoughts — 100% free, zero login, totally anonymous.
         </p>
 
         {/* Online Stats Bar */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 text-xs text-dark-400 mb-6">
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-dark-800/80 border border-dark-700/60 font-medium">
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-dark-800/80 border border-dark-700/60 font-medium">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
             <Users className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
-            {onlineCount.toLocaleString()} online now
+            {onlineCount.toLocaleString()} Indians online now
           </span>
-          <span className="flex items-center gap-1.5 text-green-400 px-3 py-1 rounded-full bg-dark-800/80 border border-dark-700/60 font-medium">
+          <span className="flex items-center gap-1.5 text-green-400 px-3 py-1.5 rounded-full bg-dark-800/80 border border-dark-700/60 font-medium">
             <Shield className="w-3.5 h-3.5" aria-hidden="true" />
             Safe & IT Act Compliant
           </span>
-          <span className="flex items-center gap-1.5 text-primary-300 px-3 py-1 rounded-full bg-dark-800/80 border border-dark-700/60 font-medium">
+          <span className="flex items-center gap-1.5 text-primary-300 px-3 py-1.5 rounded-full bg-dark-800/80 border border-dark-700/60 font-medium">
             <Lock className="w-3.5 h-3.5" aria-hidden="true" />
             100% Ephemeral & Private
           </span>
@@ -861,22 +869,22 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-sm font-bold text-dark-100 flex items-center gap-1.5">
-                <span>🎯 Choose Your Interests</span>
+                <span>🎯 Match by Interests</span>
                 <span className="text-[10px] text-dark-400 font-normal">(Optional)</span>
               </h2>
-              <p className="text-xs text-dark-400">Match with someone who shares what you love!</p>
+              <p className="text-xs text-dark-400">Pick topics to chat with someone on your wavelength!</p>
             </div>
             {selectedInterests.length > 0 && (
               <button
                 onClick={() => selectedInterests.forEach((id) => onToggleInterest(id))}
-                className="text-[11px] text-dark-400 hover:text-dark-200 underline cursor-pointer"
+                className="text-[11px] text-primary-400 hover:text-primary-300 underline cursor-pointer font-medium"
               >
-                Clear
+                Clear All
               </button>
             )}
           </div>
 
-          {/* Preset Chips — horizontal scroll on mobile, wrap on desktop */}
+          {/* Preset Chips */}
           <div className="flex sm:flex-wrap gap-2 mb-3 overflow-x-auto scrollbar-thin pb-1 sm:pb-0 -mx-1 px-1">
             {PRESET_INTERESTS.map((interest) => {
               const isSelected = selectedInterests.includes(interest.id);
@@ -902,7 +910,7 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
               type="text"
               value={customTag}
               onChange={(e) => setCustomTag(e.target.value)}
-              placeholder="Add topic (e.g. UPSC, Anime, Gym)…"
+              placeholder="Add any topic (e.g. UPSC, Gym, Anime, Coding)…"
               maxLength={25}
               className="flex-1 px-3.5 py-3 rounded-xl bg-dark-800 border border-dark-700 text-sm text-dark-100 placeholder-dark-500 outline-none focus:border-primary-500"
             />
@@ -920,14 +928,14 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
         {/* Start Button CTA */}
         <button
           onClick={onStart}
-          className="w-full py-4 sm:py-4 rounded-2xl bg-primary-500 text-dark-900 font-black text-lg hover:bg-primary-400 active:bg-primary-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 shadow-xl shadow-primary-500/25 cursor-pointer"
+          className="w-full py-4 sm:py-4 rounded-2xl bg-gradient-to-r from-primary-500 to-amber-500 text-dark-900 font-black text-lg hover:from-primary-400 hover:to-amber-400 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 shadow-xl shadow-primary-500/25 cursor-pointer"
         >
           <Search className="w-5 h-5" aria-hidden="true" />
           Start Chatting Now
         </button>
 
         <p className="mt-4 text-xs text-dark-500 max-w-xs leading-relaxed">
-          100% anonymous. By starting, you confirm you are 18+ and accept our{' '}
+          100% free & anonymous. By starting, you confirm you are 18+ and accept our{' '}
           <a href="/terms" className="underline hover:text-primary-400">Terms</a>,{' '}
           <a href="/privacy" className="underline hover:text-primary-400">Privacy</a>, and{' '}
           <a href="/disclaimer" className="underline hover:text-primary-400">Disclaimer</a>.
@@ -941,7 +949,7 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
             Why Chat On Talk to Strangers India?
           </h2>
           <p className="text-xs sm:text-sm text-dark-400 max-w-md mx-auto">
-            Built from the ground up for Indian internet users looking for genuine, spontaneous, and safe conversations.
+            Built from the ground up for Indian users looking for genuine, spontaneous, and safe conversations.
           </p>
         </div>
 
@@ -960,9 +968,9 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
             <div className="p-2 w-fit rounded-xl bg-amber-500/10 text-amber-400 mb-3">
               <Sparkles className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-bold text-dark-100 mb-1">Desi Icebreaker Prompts</h3>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">1-Click Desi Icebreakers</h3>
             <p className="text-xs text-dark-400 leading-relaxed">
-              Never say an awkward 'Hi' again. 1-click prompts for spicy debates (Maggi with ketchup, Biryani wars, Goa trips).
+              Never get stuck with a boring 'Hi'. Send spicy debate starters on Biryani wars, Goa trips, or 90s songs.
             </p>
           </div>
 
@@ -970,9 +978,9 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
             <div className="p-2 w-fit rounded-xl bg-blue-500/10 text-blue-400 mb-3">
               <Zap className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-bold text-dark-100 mb-1">Interest-Based Matching</h3>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">Smart Interest Matching</h3>
             <p className="text-xs text-dark-400 leading-relaxed">
-              Match with like-minded strangers who love Cricket & IPL, Bollywood cinema, BGMI, Tech, or Late Night Talks.
+              Match with like-minded strangers who share your passion for Cricket, BGMI, Anime, Startups, or Late Night talks.
             </p>
           </div>
 
@@ -980,7 +988,7 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
             <div className="p-2 w-fit rounded-xl bg-green-500/10 text-green-400 mb-3">
               <Shield className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-bold text-dark-100 mb-1">Safe & IT Act Compliant</h3>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">100% Safe & Moderated</h3>
             <p className="text-xs text-dark-400 leading-relaxed">
               Server-side filters automatically strip phone numbers and handles. Instant 24-hour IP ban on reported users.
             </p>
@@ -990,7 +998,7 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
             <div className="p-2 w-fit rounded-xl bg-purple-500/10 text-purple-400 mb-3">
               <CheckCircle2 className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-bold text-dark-100 mb-1">100% Zero Sign-Up</h3>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">Zero Sign-Up Required</h3>
             <p className="text-xs text-dark-400 leading-relaxed">
               No phone verification, no passwords, no email. Jump straight into conversation within seconds.
             </p>
@@ -1000,9 +1008,9 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
             <div className="p-2 w-fit rounded-xl bg-red-500/10 text-red-400 mb-3">
               <Lock className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-bold text-dark-100 mb-1">Fully Ephemeral & Private</h3>
+            <h3 className="text-sm font-bold text-dark-100 mb-1">Completely Ephemeral & Private</h3>
             <p className="text-xs text-dark-400 leading-relaxed">
-              No chat logs or personal records are ever stored. When your chat ends, everything disappears permanently.
+              Zero chat history is stored on disk. When your chat ends or you skip, everything disappears permanently.
             </p>
           </div>
         </div>
@@ -1012,7 +1020,7 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
       <section className="w-full max-w-3xl text-left pt-6 border-t border-dark-800/80">
         <div className="text-center mb-8">
           <h2 className="text-xl sm:text-2xl font-bold text-dark-50 mb-2">How It Works</h2>
-          <p className="text-xs sm:text-sm text-dark-400">Three simple steps to start chatting with strangers in India</p>
+          <p className="text-xs sm:text-sm text-dark-400">Three simple steps to start chatting with strangers across India</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1022,7 +1030,7 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
             </div>
             <h3 className="text-sm font-bold text-dark-100 mb-1">Pick Your Interests</h3>
             <p className="text-xs text-dark-400">
-              Select what you love (Cricket, Movies, Tech) or leave it blank to match with any random Indian user.
+              Select what you love (Cricket, Movies, Tech) or leave blank to match with any random Indian user.
             </p>
           </div>
 
@@ -1032,7 +1040,7 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
             </div>
             <h3 className="text-sm font-bold text-dark-100 mb-1">Instant Matchmaking</h3>
             <p className="text-xs text-dark-400">
-              Our fast queue pairs you 1-on-1 with an active user in real-time. No long waiting or confusing rooms.
+              Our real-time queue pairs you 1-on-1 with another active Indian user in seconds.
             </p>
           </div>
 
@@ -1042,7 +1050,7 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
             </div>
             <h3 className="text-sm font-bold text-dark-100 mb-1">Chat, Play & Connect</h3>
             <p className="text-xs text-dark-400">
-              Talk freely, challenge your stranger to multiplayer mini-games, or tap Esc anytime to meet someone new.
+              Talk freely, challenge stranger to mini-games, send icebreakers, or click Next to meet someone new.
             </p>
           </div>
         </div>
@@ -1127,19 +1135,19 @@ function LandingView({ onStart, appName, onlineCount, selectedInterests, onToggl
 }
 
 const DESI_TIPS = [
-  { emoji: '🏏', text: 'Did you know? The IPL generates over ₹10,000 crore in revenue annually.' },
-  { emoji: '🎬', text: 'Bollywood produces around 1,500–2,000 films per year — more than Hollywood!' },
-  { emoji: '☕', text: 'India is the world\'s largest consumer of tea. Chai over coffee, always!' },
-  { emoji: '🍛', text: 'India has 28 states, each with its own unique cuisine and dialect. Biryani debates incoming!' },
-  { emoji: '🎮', text: 'India has 500 million+ mobile gamers. BGMI has 100M+ downloads. GG!' },
-  { emoji: '🚀', text: 'ISRO\'s Chandrayaan-3 made India the first country to land near the lunar south pole.' },
-  { emoji: '💻', text: 'India produces the most software engineers in the world every year.' },
-  { emoji: '🎵', text: 'India\'s music industry crossed ₹2,000 crore in revenue in 2024. Bollywood bops rule!' },
-  { emoji: '🌊', text: 'The Indian Ocean is named after India — the only ocean named after a country.' },
-  { emoji: '📱', text: 'UPI processed over 13 billion transactions in a single month in 2024. India is going cashless!' },
-  { emoji: '🏠', text: 'Icebreaker idea: Ask your stranger — mountains or beaches? North India or South?' },
-  { emoji: '🎯', text: 'Tip: Start a Desi Quiz Duel from the Games menu. First one to 3 questions wins!' },
-  { emoji: '✨', text: 'Try an Icebreaker! Tap the ✨ icon to send a fun desi conversation starter.' },
+  { emoji: '🏏', text: 'Virat Kohli 82* vs Pakistan or Dhoni 2011 final six — which moment gave you more goosebumps?' },
+  { emoji: '🍛', text: 'Hyderabadi Biryani vs Kolkata Biryani (with Aloo) — which one reigns supreme?' },
+  { emoji: '☕', text: 'Chai pe charcha! If you could only drink Chai or Coffee for the rest of your life, which one stays?' },
+  { emoji: '🎬', text: 'Hera Pheri, Dhamaal, or Welcome — which is the greatest Indian comedy movie ever made?' },
+  { emoji: '🎮', text: 'Challenge your partner! Tap the 🎮 Games icon to play Zero Kaata or Desi Quiz Duel.' },
+  { emoji: '🍜', text: 'Spicy debate: Maggi with ketchup — genius hack or complete food crime?' },
+  { emoji: '🎧', text: '2000s Bollywood nostalgic tracks (KK, Emraan Hashmi era) vs Modern Desi Hip-Hop?' },
+  { emoji: '🏔️', text: 'Goa beach party trip with friends VS peaceful road trip to Himachal — pick one!' },
+  { emoji: '🚗', text: 'Would you rather: Bangalore Silk Board traffic for 4 hrs OR Delhi peak 45°C summer without AC?' },
+  { emoji: '📱', text: 'UPI processes 13+ billion transactions a month. India is truly digital first!' },
+  { emoji: '✨', text: 'No awkward "Hi"! Tap the ✨ icon below to send a fun 1-click Icebreaker debate.' },
+  { emoji: '🚀', text: 'ISRO made India the first country to land on the Moon\'s south pole. Proud moment!' },
+  { emoji: '🌙', text: 'Late night talks: What keeps you awake at 2 AM — deep thoughts, career goals, or insomnia?' },
 ];
 
 function SearchingView({ onlineCount, selectedInterests, onCancel, onSkipFilter, isSocketConnected }) {
